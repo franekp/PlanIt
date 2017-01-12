@@ -1,0 +1,12 @@
+version: '2'
+services:
+  web:
+    build: ./web
+    command: ./manage.py runserver 0.0.0.0:8000
+    ports:
+     - "8000:8000"
+  worker:
+    build: ./worker
+    command: ./manage.py runserver 0.0.0.0:8000
+    ports:
+      - "9000:8000"
