@@ -1,0 +1,30 @@
+version: '2'
+services:
+  web:
+    build:
+      context: ..
+      dockerfile: deploy/web/Dockerfile
+    volumes:
+      - "../src/planit_web:/src"
+    command: |
+      python -c '\
+      import subprocess;\
+      subprocess.check_call("./manage.py migrate", shell=True);\
+      subprocess.check_call("./manage.py runserver 0.0.0.0:8000", shell=True);\
+      '
+    ports:
+     - "8000:8000"
+  worker:
+    build:
+      context: ..
+      dockerfile: deploy/worker/Dockerfile
+    volumes:
+      - "../src/planit_worker:/src"
+    command: |
+      python -c '\
+      import subprocess;\
+      subprocess.check_call("./manage.py migrate", shell=True);\
+      subprocess.check_call("./manage.py runserver 0.0.0.0:8000", shell=True);\
+      '
+    ports:
+      - "9000:8000"
