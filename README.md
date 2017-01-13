@@ -7,7 +7,7 @@
    `sudo pip install docker-compose`
  * clone this repo and cd to it
  * run the services:
-   `sudo ./run.sh`
+   `sudo ./dev.sh`
    now the console output from both of them is attached to current terminal
    open in browser localhost:8000 and localhost:9000
    CTRL-C twice to stop them

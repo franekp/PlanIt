@@ -3,7 +3,7 @@ services:
   web:
     build:
       context: ..
-      dockerfile: deploy/web/Dockerfile
+      dockerfile: containers/web/Dockerfile
     volumes:
       - "../src/planit_web:/src"
     command: |
@@ -17,7 +17,7 @@ services:
   worker:
     build:
       context: ..
-      dockerfile: deploy/worker/Dockerfile
+      dockerfile: containers/worker/Dockerfile
     volumes:
       - "../src/planit_worker:/src"
     command: |
