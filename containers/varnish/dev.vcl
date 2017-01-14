@@ -11,7 +11,6 @@ backend web {
   .host = "web";
   .port = "80";
 }
-
 backend nginx {
   .host = "nginx";
   .port = "80";

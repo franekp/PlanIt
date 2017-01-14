@@ -1,0 +1,58 @@
+version: '2'
+services:
+  varnish:
+    build:
+      context: ..
+      dockerfile: containers/varnish/Dockerfile
+    command: |
+      bash -c '\
+      varnishd -f /etc/varnish/production.vcl \
+        -s malloc,100M -a 0.0.0.0:80 \
+      && varnishlog \
+      '
+    ports:
+      - 8000:80
+  nginx:
+    build:
+      context: ..
+      dockerfile: containers/nginx/Dockerfile
+  web1:
+    build:
+      context: ..
+      dockerfile: containers/web/Dockerfile
+    command: |
+      python -c '\
+      import subprocess;\
+      subprocess.check_call("./manage.py migrate", shell=True);\
+      subprocess.check_call("./manage.py runserver 0.0.0.0:80", shell=True);\
+      '
+  web2:
+    build:
+      context: ..
+      dockerfile: containers/web/Dockerfile
+    command: |
+      python -c '\
+      import subprocess;\
+      subprocess.check_call("./manage.py migrate", shell=True);\
+      subprocess.check_call("./manage.py runserver 0.0.0.0:80", shell=True);\
+      '
+  web3:
+    build:
+      context: ..
+      dockerfile: containers/web/Dockerfile
+    command: |
+      python -c '\
+      import subprocess;\
+      subprocess.check_call("./manage.py migrate", shell=True);\
+      subprocess.check_call("./manage.py runserver 0.0.0.0:80", shell=True);\
+      '
+  worker:
+    build:
+      context: ..
+      dockerfile: containers/worker/Dockerfile
+    command: |
+      python -c '\
+      import subprocess;\
+      subprocess.check_call("./manage.py migrate", shell=True);\
+      subprocess.check_call("./manage.py runserver 0.0.0.0:80", shell=True);\
+      '
