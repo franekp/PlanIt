@@ -18,8 +18,6 @@ services:
       dockerfile: containers/nginx/Dockerfile
     volumes:
       - ../build:/build
-    ports:
-      - 8001:80
   frontend:
     build:
       context: ..
@@ -32,7 +30,7 @@ services:
       # explanation on how anonymous volumes are cleaned up:
       # https://docs.docker.com/engine/reference/run/#/clean-up---rm
       - /frontend/node_modules
-    command: yarn run watch  # watch files for live code reload
+    command: yarn run build && yarn run watch
   web:
     build:
       context: ..
@@ -45,8 +43,6 @@ services:
       subprocess.check_call("./manage.py migrate", shell=True);\
       subprocess.check_call("./manage.py runserver 0.0.0.0:80", shell=True);\
       '
-    ports:
-     - 8002:80
   worker:
     build:
       context: ..
@@ -59,5 +55,3 @@ services:
       subprocess.check_call("./manage.py migrate", shell=True);\
       subprocess.check_call("./manage.py runserver 0.0.0.0:80", shell=True);\
       '
-    ports:
-      - 8003:80
