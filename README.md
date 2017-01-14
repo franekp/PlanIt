@@ -9,5 +9,5 @@
  * run the services:
    `sudo ./dev.sh`
    now the console output from both of them is attached to current terminal
-   open in browser localhost:8000 and localhost:9000
+   open in browser localhost:8000 or localhost:8000/static/css/style.css
    CTRL-C twice to stop them
