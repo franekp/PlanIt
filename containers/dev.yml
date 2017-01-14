@@ -1,5 +1,13 @@
 version: '2'
 services:
+  nginx:
+    build:
+      context: ..
+      dockerfile: containers/nginx/Dockerfile
+    volumes:
+      - ../build:/build
+    ports:
+      - 8080:80
   frontend:
     build:
       context: ..
@@ -26,7 +34,7 @@ services:
       subprocess.check_call("./manage.py runserver 0.0.0.0:8000", shell=True);\
       '
     ports:
-     - "8000:8000"
+     - 8000:8000
   worker:
     build:
       context: ..
@@ -40,4 +48,4 @@ services:
       subprocess.check_call("./manage.py runserver 0.0.0.0:8000", shell=True);\
       '
     ports:
-      - "9000:8000"
+      - 9000:8000
