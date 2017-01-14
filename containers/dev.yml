@@ -1,5 +1,13 @@
 version: '2'
 services:
+  frontend:
+    build:
+      context: ..
+      dockerfile: containers/frontend/Dockerfile
+    volumes:
+      - "../src/frontend:/frontend"
+      - "../build:/build"
+    command: yarn run watch  # watch files for live code reload
   web:
     build:
       context: ..
