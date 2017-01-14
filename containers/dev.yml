@@ -5,7 +5,7 @@ services:
       context: ..
       dockerfile: containers/web/Dockerfile
     volumes:
-      - "../src/planit_web:/src"
+      - "../src/web:/web"
     command: |
       python -c '\
       import subprocess;\
@@ -19,7 +19,7 @@ services:
       context: ..
       dockerfile: containers/worker/Dockerfile
     volumes:
-      - "../src/planit_worker:/src"
+      - "../src/worker:/worker"
     command: |
       python -c '\
       import subprocess;\

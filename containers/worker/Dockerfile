@@ -1,7 +1,7 @@
 FROM python:3.4-alpine
 RUN pip install pip-tools
-RUN mkdir /src
-WORKDIR /src
-ADD ./src/planit_worker/requirements.txt /src/
+RUN mkdir /worker
+WORKDIR /worker
+COPY ./src/worker/requirements.txt /worker/
 RUN pip-sync
-#ADD ./src/planit_worker /src
+COPY ./src/worker/* /worker/
