@@ -17,8 +17,10 @@ var supported_browsers = [
     "Safari >= 6"
 ];
 
+var sass_paths = "sass/**/*.sass"
+
 gulp.task('sass:build', function() {
-  return gulp.src("sass/**/*.sass")
+  return gulp.src(sass_paths)
     .pipe(sourcemaps.init())
     .pipe(sass({
       includePaths: ["./node_modules"]
@@ -34,5 +36,9 @@ gulp.task('sass:build', function() {
     .pipe(gulp.dest("/build/css"));
 });
 
+gulp.task('sass:watch', function() {
+    gulp.watch(sass_paths, ['sass:build']);
+});
+
 gulp.task('build', ['sass:build']);
-//gulp.task('watch', ['sass:watch'])
+gulp.task('watch', ['sass:watch'])
