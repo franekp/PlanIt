@@ -1,5 +1,17 @@
 version: '2'
 services:
+  varnish:
+    build:
+      context: ..
+      dockerfile: containers/varnish/Dockerfile
+    command: |
+      bash -c '\
+      varnishd -f /etc/varnish/dev.vcl \
+        -s malloc,100M -a 0.0.0.0:80 \
+      && varnishlog \
+      '
+    ports:
+      - 8000:80
   nginx:
     build:
       context: ..
@@ -7,7 +19,7 @@ services:
     volumes:
       - ../build:/build
     ports:
-      - 8080:80
+      - 8001:80
   frontend:
     build:
       context: ..
@@ -31,10 +43,10 @@ services:
       python -c '\
       import subprocess;\
       subprocess.check_call("./manage.py migrate", shell=True);\
-      subprocess.check_call("./manage.py runserver 0.0.0.0:8000", shell=True);\
+      subprocess.check_call("./manage.py runserver 0.0.0.0:80", shell=True);\
       '
     ports:
-     - 8000:8000
+     - 8002:80
   worker:
     build:
       context: ..
@@ -45,7 +57,7 @@ services:
       python -c '\
       import subprocess;\
       subprocess.check_call("./manage.py migrate", shell=True);\
-      subprocess.check_call("./manage.py runserver 0.0.0.0:8000", shell=True);\
+      subprocess.check_call("./manage.py runserver 0.0.0.0:80", shell=True);\
       '
     ports:
-      - 9000:8000
+      - 8003:80
