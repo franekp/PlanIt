@@ -5,15 +5,20 @@ services:
       context: ..
       dockerfile: containers/frontend/Dockerfile
     volumes:
-      - "../src/frontend:/frontend"
-      - "../build:/build"
+      - ../src/frontend:/frontend
+      - ../build:/build
+      # create anonymous volume as described here:
+      # http://jdlm.info/articles/2016/03/06/lessons-building-node-app-docker.html
+      # explanation on how anonymous volumes are cleaned up:
+      # https://docs.docker.com/engine/reference/run/#/clean-up---rm
+      - /frontend/node_modules
     command: yarn run watch  # watch files for live code reload
   web:
     build:
       context: ..
       dockerfile: containers/web/Dockerfile
     volumes:
-      - "../src/web:/web"
+      - ../src/web:/web
     command: |
       python -c '\
       import subprocess;\
@@ -27,7 +32,7 @@ services:
       context: ..
       dockerfile: containers/worker/Dockerfile
     volumes:
-      - "../src/worker:/worker"
+      - ../src/worker:/worker
     command: |
       python -c '\
       import subprocess;\

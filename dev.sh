@@ -7,7 +7,7 @@ mkdir -p build/css
 mkdir -p build/html
 mkdir -p build/js
 
-export COMPOSE_PROJECT_NAME="planit_dev"
+export COMPOSE_PROJECT_NAME="planitdev"
 export COMPOSE_FILE="containers/dev.yml"
 
 # make sure we are in project root
@@ -18,7 +18,7 @@ source util.sh
 # compile frontend
 docker-compose build frontend  # only installs build-time dependencies
 copy_to_host_if_changed frontend /frontend/yarn.lock src/frontend/yarn.lock # copy updated yarn.lock back to host
-docker-compose run frontend yarn run build # build javascript, html and css
+docker-compose run --rm frontend yarn run build # build javascript, html and css
 
 # build other containers
 docker-compose build
