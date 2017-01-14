@@ -1,4 +1,3 @@
-#FROM jankoppe/yarn:v7.3.0-v0.18.1
 FROM debian:jessie
 RUN apt-get update && apt-get install -y curl apt-transport-https
 RUN curl -sL https://deb.nodesource.com/setup_6.x | bash - && apt-get install -y nodejs
