@@ -1,4 +1,4 @@
-FROM python:3.4-alpine
+FROM python:3.4
 RUN pip install pip-tools
 
 RUN mkdir /web
