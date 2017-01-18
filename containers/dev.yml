@@ -38,7 +38,7 @@ services:
       - ../src/web:/web
     command: |
       bash -c '\
-      ./manage.py migrate && ./manage.py runserver 0.0.0.0:80 \
+      ./manage.py migrate --noinput && ./manage.py runserver 0.0.0.0:80 \
       '
   worker:
     build:
@@ -48,5 +48,5 @@ services:
       - ../src/worker:/worker
     command: |
       bash -c '\
-      ./manage.py migrate && ./manage.py runserver 0.0.0.0:80 \
+      ./manage.py migrate --noinput && ./manage.py runserver 0.0.0.0:80 \
       '

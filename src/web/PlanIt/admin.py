@@ -1,10 +1,9 @@
 from django.contrib import admin
-
-from .models import Snippet
-
-class SnippetAdmin(admin.ModelAdmin):
-    list_display = ('created','title','data','owner')
+from PlanIt.models import Card
 
 
-admin.site.register(Snippet, SnippetAdmin)
-# Register your models here.
+class CardAdmin(admin.ModelAdmin):
+    list_display = ('created', 'day', 'text', 'user')
+
+
+admin.site.register(Card, CardAdmin)

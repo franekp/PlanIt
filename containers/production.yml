@@ -21,7 +21,7 @@ services:
       dockerfile: containers/web/Dockerfile
     command: |
       bash -c '\
-      ./manage.py migrate && ./manage.py runserver 0.0.0.0:80 \
+      ./manage.py migrate --noinput && ./manage.py runserver 0.0.0.0:80 \
       '
   web2:
     build:
@@ -29,7 +29,7 @@ services:
       dockerfile: containers/web/Dockerfile
     command: |
       bash -c '\
-      ./manage.py migrate && ./manage.py runserver 0.0.0.0:80 \
+      ./manage.py runserver 0.0.0.0:80 \
       '
   web3:
     build:
@@ -37,7 +37,7 @@ services:
       dockerfile: containers/web/Dockerfile
     command: |
       bash -c '\
-      ./manage.py migrate && ./manage.py runserver 0.0.0.0:80 \
+      ./manage.py runserver 0.0.0.0:80 \
       '
   worker:
     build:

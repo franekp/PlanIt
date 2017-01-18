@@ -13,20 +13,16 @@ Including another URLconf
     1. Import the include() function: from django.conf.urls import url, include
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
-from django.conf.urls import url
-from django.contrib import admin
 from django.conf.urls import url, include
-from rest_framework import routers
-from PlanIt import views
+from django.contrib.admin import site as admin_site
 
-router = routers.DefaultRouter()
-router.register(r'users', views.UserViewSet)
-router.register(r'groups', views.GroupViewSet)
+import PlanIt.urls
+
 
 urlpatterns = [
-    url(r'^admin/', admin.site.urls),
-    url(r'^', include(router.urls)),
-    url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    url(r'^admin/', admin_site.urls),
     url(r'^', include('PlanIt.urls')),
-
+    url(r'^api-auth/', include(
+        'rest_framework.urls', namespace='rest_framework'
+    )),
 ]

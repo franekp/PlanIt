@@ -1,33 +1,13 @@
 from django.db import models
-
-from pygments.lexers import get_all_lexers
-from pygments.styles import get_all_styles
-from pygments.lexers import get_lexer_by_name
-from pygments.formatters.html import HtmlFormatter
-from pygments import highlight
-import datetime
-from django.utils import timezone
-
-LEXERS = [item for item in get_all_lexers() if item[1]]
-LANGUAGE_CHOICES = sorted([(item[1][0], item[0]) for item in LEXERS])
-STYLE_CHOICES = sorted((item, item) for item in get_all_styles())
+from django.conf import settings
 
 
-class Puser(models.Model):
-    name = models.CharField(max_length=100)
-
-class Snippet(models.Model):
+class Card(models.Model):
     created = models.DateTimeField(auto_now_add=True)
-    data = models.DateTimeField(default=timezone.now())
-    title = models.CharField(max_length=100, blank=True, default='')
-    text = models.TextField(default='')
-    #then colour
-    style = models.CharField(choices=STYLE_CHOICES, default='friendly', max_length=100)
-    owner = models.ForeignKey('auth.User', related_name='snippets', on_delete=models.CASCADE)
-
-    def save(self, *args, **kwargs):
-        options = self.title and {'title': self.title} or {}
-        super(Snippet, self).save(*args, **kwargs)
+    day = models.DateField(blank=True, null=True)
+    text = models.TextField(max_length=200, blank=True)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, related_name='cards', on_delete=models.CASCADE)
 
     class Meta:
         ordering = ('created',)
