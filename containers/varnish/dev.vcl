@@ -34,7 +34,7 @@ sub vcl_recv {
    }
    return (purge);
   }
-  if (req.url ~ "^/static") {
+  if (req.url ~ "^/app") {
     set req.backend_hint = nginx_director.backend();
     return(pipe);
   } else {
