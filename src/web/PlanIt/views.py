@@ -12,22 +12,24 @@ from PlanIt.models import Card
 
 class CardsByDayViewSet(viewsets.ModelViewSet):
     serializer_class = CardSerializer
+    pagination_class = None
 
     def get_queryset(self):
-        day = date(datetime.strptime(self.kwargs['day'], '%Y-%m-%d'))
+        day = datetime.strptime(self.kwargs['day'], '%Y-%m-%d').date()
         return Card.objects.filter(user=self.request.user, day=day)
 
     def perform_create(self, serializer):
-        day = date(datetime.strptime(self.kwargs['day'], '%Y-%m-%d'))
+        day = datetime.strptime(self.kwargs['day'], '%Y-%m-%d').date()
         serializer.save(user=self.request.user, day=day)
 
     def perform_update(self, serializer):
-        day = date(datetime.strptime(self.kwargs['day'], '%Y-%m-%d'))
+        day = datetime.strptime(self.kwargs['day'], '%Y-%m-%d').date()
         serializer.save(user=self.request.user, day=day)
 
 
 class CardsInParkingLotViewSet(viewsets.ModelViewSet):
     serializer_class = CardSerializer
+    pagination_class = None
 
     def get_queryset(self):
         return Card.objects.filter(user=self.request.user, day=None)

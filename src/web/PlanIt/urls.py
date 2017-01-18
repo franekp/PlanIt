@@ -6,10 +6,10 @@ from PlanIt import views
 
 router = routers.SimpleRouter()
 router.register(
-    'day/(?P<day>[0-9]{4}-[0-9]{2}-[0-9]{2})/cards/',
+    'day/(?P<day>[0-9]{4}-[0-9]{2}-[0-9]{2})/cards',
     views.CardsByDayViewSet, base_name='cards-by-day')
 router.register(
-    'parking_lot/cards/', views.CardsInParkingLotViewSet,
+    'parking_lot/cards', views.CardsInParkingLotViewSet,
     base_name='cards-in-parking-lot')
 
 
