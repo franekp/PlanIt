@@ -21,7 +21,7 @@ import PlanIt.urls
 
 urlpatterns = [
     url(r'^admin/', admin_site.urls),
-    url(r'^', include('PlanIt.urls')),
+    url(r'^api/', include('PlanIt.urls')),
     url(r'^api-auth/', include(
         'rest_framework.urls', namespace='rest_framework'
     )),
