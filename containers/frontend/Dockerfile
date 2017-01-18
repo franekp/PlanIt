@@ -10,6 +10,9 @@ WORKDIR /frontend
 
 COPY ./src/frontend/package.json ./src/frontend/yarn.lock /frontend/
 RUN yarn install
+RUN yarn global add elm@0.17.1
+COPY ./src/frontend/elm-package.json /frontend/
+RUN elm-package install --yes
 
 # don't copy whole frontend directory since both on dev and production building
 # the frontend will be done not in a Dockerfile but in a running container with
