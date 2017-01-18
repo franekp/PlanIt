@@ -44,7 +44,7 @@ class CardsInParkingLotViewSet(viewsets.ModelViewSet):
 @api_view(['GET'])
 def api_root(request, format=None):
     return Response({
-        'cards-by-day': reverse(
+        'cards-today': reverse(
             'cards-by-day-list', request=request, format=format,
             kwargs=dict(day=datetime.now().strftime('%Y-%m-%d'))),
         'cards-in-parking-lot': reverse(
