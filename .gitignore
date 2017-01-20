@@ -2,3 +2,5 @@ __pycache__
 db.sqlite3
 build
 .idea
+elm-stuff
+node_modules
