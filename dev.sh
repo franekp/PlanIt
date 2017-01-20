@@ -51,7 +51,7 @@ if [ ! -f last_yarn_install_timestamp ] \
 ; \
 then
   # install npm and elm packages
-  rm -rf src/frontend/node_modules  # clear node_modules/ - yarn has cache so it does not hurt
+  find src/frontend/node_modules/* | grep -v sass | xargs rm -rf # clear node_modules/ but leave node-sass and gulp-sass
   # don't remove elm-stuff/ because elm-package does not have cache, but package versions
   # are included in folder names, so this should not be necessary anyway
   docker-compose --file=containers/dev.yml run --no-deps --rm frontend yarn install

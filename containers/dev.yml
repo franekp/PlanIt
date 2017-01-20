@@ -7,6 +7,7 @@ services:
     volumes:
       - ../src/frontend:/frontend
       - ../build:/build
+      - yarn-cache:/root/.cache/yarn
     command: |
       bash -c ' \
       yarn run build && yarn run watch \
@@ -48,3 +49,6 @@ services:
       bash -c '\
       ./manage.py migrate --noinput && ./manage.py runserver 0.0.0.0:80 \
       '
+volumes:
+  yarn-cache:
+    driver: local
