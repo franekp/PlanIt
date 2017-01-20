@@ -1,12 +1,28 @@
 import Html as H exposing (Html)
-import Html.App as App
+import Html
 import Html.Attributes as Att
 import Html.Events as Ev
 import Http
-import Json.Decode as Json exposing ((:=))
+import Json.Decode as Json
 import Task
 
-main = App.program {
+import SortableList
+
+(:=) = Json.field
+
+
+--main = SortableList.main
+
+main = Html.program
+    { init = SortableList.init
+    , update = SortableList.update
+    , subscriptions = SortableList.subscriptions
+    , view = SortableList.view
+    }
+
+{-
+
+main = Html.program {
     init = init,
     view = view,
     update = update,
@@ -49,3 +65,5 @@ subscriptions model =
 -- JSON PARSING
 
 -- not yet
+
+-}

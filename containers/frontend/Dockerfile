@@ -10,7 +10,7 @@ WORKDIR /frontend
 
 COPY ./src/frontend/package.json ./src/frontend/yarn.lock /frontend/
 RUN yarn install
-RUN yarn global add elm@0.17.1
+RUN yarn global add elm@0.18.0
 COPY ./src/frontend/elm-package.json /frontend/
 RUN elm-package install --yes
 

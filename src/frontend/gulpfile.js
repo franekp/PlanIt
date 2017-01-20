@@ -45,7 +45,7 @@ var dest = {
 
 gulp.task('elm:init', elm.init);
 
-gulp.task('elm:build', ['elm:init'], function(cb) {
+gulp.task('elm:build', function(cb) {
   exec('elm make elm/Main.elm --output /build/js/main.js', function (err, stdout, stderr) {
       console.log(stdout);
       console.log(stderr);
