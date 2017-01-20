@@ -46,19 +46,37 @@ else
 fi
 if [ ! -f last_yarn_install_timestamp ] \
   || find src/frontend/package.json -newer last_yarn_install_timestamp | egrep '.*' \
-  || find src/frontend/elm-package.json -newer last_yarn_install_timestamp | egrep '.*' \
   || find src/frontend/yarn.lock -newer last_yarn_install_timestamp | egrep '.*' \
 ; \
 then
-  # install npm and elm packages
-  find src/frontend/node_modules/* | grep -v sass | xargs rm -rf # clear node_modules/ but leave node-sass and gulp-sass
-  # don't remove elm-stuff/ because elm-package does not have cache, but package versions
-  # are included in folder names, so this should not be necessary anyway
+  rm -rf src/frontend/node_modules
+  # I know that it sucks that yarn cannot use cache for the node-sass module,
+  # but don't know how to workaround that, installing globally didn't help
+  # - it was not visible from gulp somehow
   docker-compose --file=containers/dev.yml run --no-deps --rm frontend yarn install
   touch last_yarn_install_timestamp
 else
   echo 'None such files.'
   echo 'Skipping yarn install.'
+fi
+
+# f*cking timestamp magic
+if [ ! -f last_elm_package_install_timestamp ]; then
+  echo 'Running elm-package install for the first time here.'
+else
+  echo 'Files changed since last elm-package install:'
+fi
+if [ ! -f last_elm_package_install_timestamp ] \
+  || find src/frontend/elm-package.json -newer last_elm_package_install_timestamp | egrep '.*' \
+; \
+then
+  # don't remove elm-stuff/ because elm-package does not have cache, but package versions
+  # are included in folder names, so this should not be necessary anyway
+  docker-compose --file=containers/dev.yml run --no-deps --rm frontend elm-package install --yes
+  touch last_elm_package_install_timestamp
+else
+  echo 'None such files.'
+  echo 'Skipping elm-package install.'
 fi
 
 # run services with live code reload (docker volumes + "watch")
