@@ -4,3 +4,5 @@ build
 .idea
 elm-stuff
 node_modules
+last_docker_build_timestamp
+last_yarn_install_timestamp

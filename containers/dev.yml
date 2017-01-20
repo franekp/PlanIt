@@ -7,15 +7,8 @@ services:
     volumes:
       - ../src/frontend:/frontend
       - ../build:/build
-      # create anonymous volume as described here:
-      # http://jdlm.info/articles/2016/03/06/lessons-building-node-app-docker.html
-      # explanation on how anonymous volumes are cleaned up:
-      # https://docs.docker.com/engine/reference/run/#/clean-up---rm
-      - /frontend/node_modules
-      - /frontend/elm-stuff
     command: |
       bash -c ' \
-      find elm-stuff && \
       yarn run build && yarn run watch \
       '
   varnish:

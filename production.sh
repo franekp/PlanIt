@@ -16,8 +16,9 @@ export COMPOSE_FILE="containers/production.yml"
 # compile frontend (we have to do it before if not using docker volumes)
 # use dev compose file since we don't really have this machine in production,
 # it only is needed for compilation
-docker-compose --file=containers/dev.yml build frontend # install build-time dependencies
-docker-compose --file=containers/dev.yml run --no-deps --rm frontend yarn run build # build javascript, html and css
+# TODO fix this! - should be separate thing to not mount any directories (???)
+docker-compose --file=containers/dev.yml build frontend
+docker-compose --file=containers/dev.yml run --no-deps --rm frontend 'yarn install && yarn run build' # build javascript, html and css
 
 # build other containers - particularly nginx, which depends on files the above
 # commands has written to <project root>/build/
