@@ -6,64 +6,74 @@ import Http
 import Json.Decode as Json
 import Task
 
+import Draggable
+
 import SortableList
+
 
 (:=) = Json.field
 
 
---main = SortableList.main
-
 main = Html.program
-    { init = SortableList.init
-    , update = SortableList.update
-    , subscriptions = SortableList.subscriptions
-    , view = SortableList.view
+    { init = init
+    , update = update
+    , subscriptions = subscriptions
+    , view = view
     }
-
-{-
-
-main = Html.program {
-    init = init,
-    view = view,
-    update = update,
-    subscriptions = subscriptions
-  }
 
 -- MODEL
 
-type Tab = LoginT | RegisterT | WeekViewT
 type alias Model = {
-    active_tab : Tab
+    a : SortableList.Model,
+    b : SortableList.Model
   }
+
+-- type Msg is imported from SortableList
 type Action
-  = ShowTab Tab
+  = SortableListA_a SortableList.Msg
+  | SortableListA_b SortableList.Msg
+
 init : (Model, Cmd Action)
-init = ({active_tab = LoginT}, Cmd.none)
+init = ({
+    a = let (x, _) = SortableList.init in x,
+    b = let (x, _) = SortableList.init in x
+  }, Cmd.none)
 
 -- UPDATE
 
 update : Action -> Model -> (Model, Cmd Action)
 update action model =
   case action of
-    ShowTab t -> ({model | active_tab = t}, Cmd.none)
+    SortableListA_a act ->
+      let (newmod, cmd) = SortableList.update act model.a in
+      ({model | a = newmod}, Cmd.map SortableListA_a cmd)
+    SortableListA_b act ->
+      let (newmod, cmd) = SortableList.update act model.b in
+      ({model | b = newmod}, Cmd.map SortableListA_b cmd)
 
 -- VIEW
 
 view : Model -> Html Action
-view model =
-  case model.active_tab of
-    LoginT -> H.div [] [H.text "Login"]
-    RegisterT -> H.div [] [H.text "Register"]
-    WeekViewT -> H.div [] [H.text "WeekView"]
+view {a, b} =
+  H.div [Att.class "week_container"] [
+    H.div [Att.class "day_container"] [
+      Html.map SortableListA_a <| SortableList.view a
+    ],
+    H.div [Att.class "day_container"] [
+      Html.map SortableListA_b <| SortableList.view b
+    ]
+  ]
 
 -- SUBSCRIPTIONS
 
 subscriptions : Model -> Sub Action
-subscriptions model =
-  Sub.none
+subscriptions {a, b} =
+  Sub.batch [
+    Sub.map SortableListA_a <| Draggable.subscriptions SortableList.DragMsg a.drag,
+    Sub.map SortableListA_b <| Draggable.subscriptions SortableList.DragMsg b.drag
+  ]
+
 
 -- JSON PARSING
 
 -- not yet
-
--}
