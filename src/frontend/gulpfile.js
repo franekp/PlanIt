@@ -34,18 +34,30 @@ var dest = {
   css: "/build/css"
 }
 
-gulp.task('elm:build', function(cb) {
-  node_exec('rm -rf elm_preprocessed && mkdir -p elm_preprocessed')
+gulp.task('elm:preprocess_clean', function(cb) {
+  node_exec(
+    'mkdir -p elm_preprocessed && rm -rf elm_preprocessed && mkdir -p elm_preprocessed',
+    function(err, stdout, stderr) {
+      console.log(stdout)
+      console.log(stderr)
+      cb(err)
+    }
+  )
+})
+
+gulp.task('elm:preprocess', ['elm:preprocess_clean'], function() {
   // remove trailing commas and leading pipes
   // (all '|' preceded by any amount of whitespace and '=')
-  gulp.src(source.elm).pipe(
+  return gulp.src(source.elm).pipe(
     // this weird comment below is because unmatched brackets in regexp
     // interfere with bracket matching functionality of some code editors
     gulp_replace(/* {[( */ /,(\s*)(\}|\]|\))/g, '$1$2')
   ).pipe(
     gulp_replace(/=(\s*)\|/g, '$1=')
   ).pipe(gulp.dest(source.elm_preprocessed))
+})
 
+gulp.task('elm:build', ['elm:preprocess'], function(cb) {
   node_exec(
     'elm make ' + source.elm_preprocessed + '/Main.elm --output ' + dest.js + '/main.js',
     function (err, stdout, stderr) {
@@ -57,17 +69,17 @@ gulp.task('elm:build', function(cb) {
 })
 
 gulp.task('elm:watch', function() {
-  gulp.watch(source.elm, ['elm:build'])
+  return gulp.watch(source.elm, ['elm:build'])
 })
 
 gulp.task('html:build', function() {
   // nothing happens, just copy the files
-  gulp.src(source.html)
+  return gulp.src(source.html)
   .pipe(gulp.dest(dest.html))
 })
 
 gulp.task('html:watch', function() {
-  gulp.watch(source.html, ['html:build'])
+  return gulp.watch(source.html, ['html:build'])
 })
 
 gulp.task('sass:build', function() {
@@ -88,7 +100,7 @@ gulp.task('sass:build', function() {
 })
 
 gulp.task('sass:watch', function() {
-    gulp.watch(source.sass, ['sass:build'])
+  return gulp.watch(source.sass, ['sass:build'])
 })
 
 gulp.task('build', ['elm:build', 'html:build', 'sass:build'])
