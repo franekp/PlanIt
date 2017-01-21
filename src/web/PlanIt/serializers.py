@@ -6,4 +6,5 @@ from .models import Card
 class CardSerializer(serializers.ModelSerializer):
     class Meta:
         model = Card
-        fields = ('created', 'text')
+        fields = ('id', 'text', 'created',)
+        read_only_fields = ('id', 'created',)

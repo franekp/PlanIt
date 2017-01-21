@@ -5,6 +5,7 @@ from rest_framework.reverse import reverse
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
+from django.shortcuts import get_object_or_404
 
 from PlanIt.serializers import CardSerializer
 from PlanIt.models import Card
@@ -13,6 +14,10 @@ from PlanIt.models import Card
 class CardsByDayViewSet(viewsets.ModelViewSet):
     serializer_class = CardSerializer
     pagination_class = None
+
+    def get_object(self):
+        pk = int(self.kwargs['pk'])
+        return get_object_or_404(Card.objects, user=self.request.user, pk=pk)
 
     def get_queryset(self):
         day = datetime.strptime(self.kwargs['day'], '%Y-%m-%d').date()
@@ -30,6 +35,10 @@ class CardsByDayViewSet(viewsets.ModelViewSet):
 class CardsInParkingLotViewSet(viewsets.ModelViewSet):
     serializer_class = CardSerializer
     pagination_class = None
+
+    def get_object(self):
+        pk = int(self.kwargs['pk'])
+        return get_object_or_404(Card.objects, user=self.request.user, pk=pk)
 
     def get_queryset(self):
         return Card.objects.filter(user=self.request.user, day=None)
