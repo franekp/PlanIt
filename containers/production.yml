@@ -21,7 +21,7 @@ services:
       dockerfile: containers/web/Dockerfile
     command: |
       bash -c '\
-      ./manage.py migrate --noinput && ./manage.py runserver 0.0.0.0:80 \
+      ./manage.py migrate --noinput --settings=web.settings.production && ./manage.py runserver 0.0.0.0:80 --settings=web.settings.production \
       '
   web2:
     build:
@@ -29,7 +29,7 @@ services:
       dockerfile: containers/web/Dockerfile
     command: |
       bash -c '\
-      ./manage.py runserver 0.0.0.0:80 \
+      ./manage.py runserver 0.0.0.0:80 --settings=web.settings.production \
       '
   web3:
     build:
@@ -37,7 +37,7 @@ services:
       dockerfile: containers/web/Dockerfile
     command: |
       bash -c '\
-      ./manage.py runserver 0.0.0.0:80 \
+      ./manage.py runserver 0.0.0.0:80 --settings=web.settings.production\
       '
   worker:
     build:
@@ -47,3 +47,15 @@ services:
       bash -c '\
       ./manage.py migrate && ./manage.py runserver 0.0.0.0:80 \
       '
+  memcached1:
+    build:
+      context: ..
+      dockerfile: containers/memcached/Dockerfile
+    ports:
+      - 11211:11211
+  memcached2:
+    build:
+      context: ..
+      dockerfile: containers/memcached/Dockerfile
+    ports:
+      - 11212:11211
