@@ -15,20 +15,19 @@ import ArrayX
 
 
 main : Program Never Model Msg
-main =
-    Html.program
-        { init = init
-        , update = update
-        , subscriptions = subscriptions
-        , view = view
-        }
+main = Html.program {
+    init = init,
+    update = update,
+    subscriptions = subscriptions,
+    view = view,
+  }
 
 
 type alias Model =
     { items : Items
     , draggingItemIndex : Maybe Index
     , draggedDistance : Distance
-    , drag : Draggable.State
+    , drag : Draggable.State,
     }
 
 
@@ -70,7 +69,10 @@ type Msg
 
 init : ( Model, Cmd Msg )
 init =
-    ( { items = Array.fromList [ item "#1 first item", item "#2 second item", item "#3 third item", item "#4 item", item "#5 item", item "#6 item", item "#7 item" ]
+    ( { items = Array.fromList [
+          item "#1 first item", item "#2 second item", item "#3 third item",
+          item "#4 item", item "#5 item", item "#6 item", item "#7 item"
+        ]
       , draggingItemIndex = Nothing
       , draggedDistance = noDistance
       , drag = Draggable.init

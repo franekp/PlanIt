@@ -4,7 +4,7 @@
   "repository": "https://github.com/franekp/planit.git",
   "license": "AGPL3",
   "source-directories": [
-    "elm"
+    "elm_preprocessed"
   ],
   "exposed-modules": [],
   "dependencies": {
