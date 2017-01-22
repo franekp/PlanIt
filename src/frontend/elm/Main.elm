@@ -7,73 +7,160 @@ import Json.Decode as Json
 import Task
 
 import Draggable
+import Draggable.Events exposing (onDragBy, onDragStart, onDragEnd, onClick)
+-- onClick = mouseDown and mouseUp without a mouseMove in between
 
 import SortableList
-
 
 (:=) = Json.field
 
 
 main = Html.program {
-    init = init,
+    init = SortableList.init,
+    update = SortableList.update,
+    subscriptions = SortableList.subscriptions,
+    view = SortableList.view,
+  }
+
+{-
+main = Html.program {
+    init = init [
+      ["item1", "item2", "item3"],
+      ["item4", "item5"],
+      ["item7". "item8"],
+    ],
     update = update,
     subscriptions = subscriptions,
     view = view,
   }
-
--- MODEL
+-}
 
 type alias Model = {
-    a : SortableList.Model,
-    b : SortableList.Model,
-  }
+  board : List CardList,
+  dragging : Maybe {card_id : CardId, delta: Draggable.Delta},
+  hovering : Maybe {card_id : Maybe CardId, card_list_id : CardListId},
+  drag : Draggable.State,
+}
 
--- type Msg is imported from SortableList
-type Action =
-  | SortableListA_a SortableList.Msg
-  | SortableListA_b SortableList.Msg
+type alias CardId = Int
+type alias CardListId = Int
 
-init : (Model, Cmd Action)
-init = ({
-    a = let (x, _) = SortableList.init in x,
-    b = let (x, _) = SortableList.init in x,
+type alias CardList = {
+  ident : CardListId,
+  cards : List Card,
+}
+
+type alias Card = {
+  ident : CardId,
+  text : String,
+}
+
+type Msg =
+  | DragMsg Draggable.Msg
+  | DragStart String
+  | DragBy Draggable.Delta
+  | DragEnd
+  | MouseEnterCardList CardListId
+  | MouseLeaveCardList CardListId
+  | MouseEnterCard CardId
+  | MouseLeaveCard CardId
+
+init : List (List String) -> (Model, Cmd Msg)
+init input = ({
+    board = List.indexedMap (\i -> List.indexedMap Card >> CardList i) input,
+    dragging = Nothing,
+    hovering = Nothing,
+    drag = Draggable.init,
   }, Cmd.none)
 
--- UPDATE
-
-update : Action -> Model -> (Model, Cmd Action)
-update action model =
-  case action of
-    SortableListA_a act ->
-      let (newmod, cmd) = SortableList.update act model.a in
-      ({model | a = newmod}, Cmd.map SortableListA_a cmd)
-    SortableListA_b act ->
-      let (newmod, cmd) = SortableList.update act model.b in
-      ({model | b = newmod}, Cmd.map SortableListA_b cmd)
-
--- VIEW
-
-view : Model -> Html Action
-view {a, b} =
-  H.div [Att.class "week_container"] [
-    H.div [Att.class "day_container"] [
-      Html.map SortableListA_a <| SortableList.view a
-    ],
-    H.div [Att.class "day_container"] [
-      Html.map SortableListA_b <| SortableList.view b
-    ],
+dragConfig : Draggable.Config Msg
+dragConfig =
+  Draggable.customConfig [
+    onDragStart DragStart,
+    onDragBy DragBy,
+    onDragEnd DragEnd,
   ]
 
--- SUBSCRIPTIONS
+subscriptions : Model -> Sub Msg
+subscriptions {drag} =
+  Draggable.subscriptions DragMsg drag
 
-subscriptions : Model -> Sub Action
-subscriptions {a, b} =
-  Sub.batch [
-    Sub.map SortableListA_a <| Draggable.subscriptions SortableList.DragMsg a.drag,
-    Sub.map SortableListA_b <| Draggable.subscriptions SortableList.DragMsg b.drag,
-  ]
+update : Msg -> Model -> (Model, Cmd Msg)
+update msg ({board, dragging, hovering, drag} as model) =
+  case msg of
+    DragMsg dragMsg ->
+      Draggable.update dragConfig dragMsg model
+
+    DragStart ugly_dragging_string_index -> {
+        model |
+        dragging = ugly_dragging_string_index
+          |> String.toInt |> Result.toMaybe
+          |> Maybe.map (\card_id -> {card_id = card_id, delta = (0.0, 0.0)})
+      } ! []
+
+    DragBy dragged_delta ->
+      let apply_delta (a, b) (c, d) = (a + c, b + d) in
+      case dragging of
+        Just ({card_id, delta} as dragging) -> {
+            model |
+            dragging = Just {dragging | delta = apply_delta delta dragged_delta}
+          } ! []
+
+        Nothing -> model ! []  -- should not be possible
+
+    DragEnd -> stop_dragging model ! []
+
+    -- TODO TODO TODO
+    MouseEnterCardList card_list_id -> model ! []
+    MouseLeaveCardList card_list_id -> model ! []
+    MouseEnterCard card_id -> model ! []
+    MouseLeaveCard card_id -> model ! []
 
 
--- JSON PARSING
+stop_dragging : Model -> Model
+stop_dragging ({board, dragging, hovering, drag} as model) =
+  case dragging of
+    Nothing -> model  -- should not be possible
 
--- not yet
+    Just dragging ->
+      case hovering of
+        -- dropped outside allowed places, card returns to it's previous place
+        Nothing -> {model | dragging = Nothing}
+
+        Just hovering ->
+          let dragging_card =
+            board |> List.concatMap (.cards)
+            |> List.filter (.ident >> ((==) dragging.card_id)) |> List.head
+          in case dragging_card of
+            Nothing -> {model | dragging = Nothing}  -- should not be possible
+
+            Just dragging_card ->
+              let update_card_list ({ident} as card_list) =
+                let cards =
+                  card_list.cards
+                  |> List.filter (.ident >> ((/=) dragging.card_id))
+                in if ident /= hovering.card_list_id then
+                  {ident = ident, cards = cards}
+                else
+                  case hovering.card_id of
+                    Nothing ->
+                      {ident = ident, cards = cards ++ [dragging_card]}
+
+                    Just hovering_card_id ->
+                      let insert_helper input output =
+                        case input of
+                          [] -> output
+
+                          h::t ->
+                            if h.ident == hovering_card_id then
+                              insert_helper t (h::dragging_card::output)
+                            else
+                              insert_helper t (h::output)
+                      in let insert_into input =
+                        insert_helper input [] |> List.reverse
+                      in {ident = ident, cards = insert_into cards}
+              in {
+                model |
+                dragging = Nothing,
+                board = List.map update_card_list model.board,
+              }
