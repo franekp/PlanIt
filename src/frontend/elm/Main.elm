@@ -2,8 +2,11 @@ import Html as H exposing (Html)
 import Html
 import Html.Attributes as Att
 import Html.Events as Ev
+import Html.Lazy
+import Dom
 import Http
-import Json.Decode as Json
+import Json.Decode as Decode
+import Json.Encode as Encode
 import Task
 
 import Draggable
@@ -11,7 +14,14 @@ import Draggable.Events exposing (onDragBy, onDragStart, onDragEnd, onClick)
 -- onClick = mouseDown and mouseUp without a mouseMove in between
 
 
-(:=) = Json.field
+(:=) = Decode.field
+
+
+onContentChange : (String -> msg) -> Html.Attribute msg
+onContentChange make_msg_from_string =
+  let target_inner_html = ("target" := ("innerHTML" := Decode.string)) in
+  Ev.on "input" (Decode.map make_msg_from_string target_inner_html)
+
 
 main = Html.program {
     init = init [
@@ -33,10 +43,16 @@ main = Html.program {
 
 type alias Model = {
   board : List CardList,
+  -- currently dragged card
   dragging : Maybe {
     card : Card, delta: Draggable.Delta, card_list_id : CardListId,
   },
+  -- here we keep which card is currently being hovered, only for the purpose of
+  -- determining where to drop card that is currently dragged
   hovering : Maybe {card_id : Maybe CardId, card_list_id : CardListId},
+  -- here we keep a state of edit in progress (this is different from
+  -- this stuff in "board" field)
+  editing : Maybe {card: Card, card_list_id : CardListId},
   drag : Draggable.State,
   google_chrome_mouse_up_hack : {card : Bool, card_list : Bool},
 }
@@ -64,9 +80,10 @@ type Msg =
   | MouseEnterCard CardId
   | MouseLeaveCard CardId
   | MouseUp
-  --| EditStart CardListId CardId
-  --| EditInProgress String
-  --| EditEnd
+  | EditStart Card CardListId
+  | EditInProgress String
+  | EditEnd
+  | NoOp
 
 card_to_string : (Card, CardListId) -> String
 card_to_string ({ident, text}, card_list_id) =
@@ -75,7 +92,8 @@ card_to_string ({ident, text}, card_list_id) =
 card_from_string : String -> Maybe (Card, CardListId)
 card_from_string str =
   case String.split "\n" str of
-    [card_list_id, ident, text] ->
+    card_list_id::ident::text_ ->
+      let text = String.concat text_ in
       (Maybe.map2 (\card_list_id -> \ident ->
         ({ident = ident, text = text}, card_list_id)
       ))
@@ -90,6 +108,7 @@ init input = ({
       ) input,
     dragging = Nothing,
     hovering = Nothing,
+    editing = Nothing,
     drag = Draggable.init,
     google_chrome_mouse_up_hack = {card = False, card_list = False},
   }, Cmd.none)
@@ -107,8 +126,8 @@ subscriptions {drag} =
   Draggable.subscriptions DragMsg drag
 
 update : Msg -> Model -> (Model, Cmd Msg)
-update msg ({board, dragging, hovering, drag} as model) =
-  case msg of
+update msg ({board, dragging, hovering, editing, drag} as model) =
+  case (Debug.log "Msg" msg) of
     DragMsg dragMsg ->
       Draggable.update dragConfig dragMsg model
 
@@ -184,6 +203,42 @@ update msg ({board, dragging, hovering, drag} as model) =
         model | google_chrome_mouse_up_hack = {card = True, card_list = True}
       } ! []
 
+    EditStart card card_list_id -> Debug.log "EditStart" {
+        model | editing = Just {card = card, card_list_id = card_list_id}
+      } ! [
+        Dom.focus "editing_card_textbox"
+        |> Task.attempt (\_ -> NoOp)
+      ]
+
+    EditInProgress text -> case editing of
+      Nothing -> model ! []  -- should not be possible
+      Just ({card, card_list_id} as editing) -> {
+          model | editing = Just {editing | card = {card | text = text}}
+        } ! []
+
+    EditEnd -> case editing of
+      Nothing -> model ! []
+      Just {card, card_list_id} ->
+        let new_board = board |> List.map (\card_list ->
+          if card_list_id /= card_list.ident then
+            card_list
+          else
+            {
+              card_list | cards =
+                card_list.cards |> List.map (\card_from_list ->
+                  if card_from_list.ident == card.ident then
+                    card
+                  else
+                    card_from_list
+                )
+            }
+          )
+        in {
+          model | board = new_board, editing = Nothing,
+        } ! []
+
+    NoOp -> model ! []
+
 stop_dragging : Model -> Model
 stop_dragging ({board, dragging, hovering, drag} as model) =
   case dragging of
@@ -229,7 +284,7 @@ stop_dragging ({board, dragging, hovering, drag} as model) =
 (=>) = \a -> \b -> (a, b)
 
 view : Model -> Html Msg
-view ({board, dragging, hovering, drag} as model) =
+view ({board, dragging, hovering, editing, drag} as model) =
   let
     dragging_card_css delta =
       let
@@ -256,6 +311,7 @@ view ({board, dragging, hovering, drag} as model) =
         ],
         class_list = ["card", "dragging"],
         is_hovering = False,
+        is_editing = False,
       }
     normal_card_css = {
       inline = [
@@ -264,18 +320,30 @@ view ({board, dragging, hovering, drag} as model) =
       ],
       class_list = ["card"],
       is_hovering = False,
+      is_editing = False,
     }
     hovering_card_css = {
       inline = ["z-index" => "1"],
       class_list = ["card", "hovering"],
       is_hovering = True,
+      is_editing = False,
     }
     ghost_card_css = {
       inline = ["z-index" => "1"],
       class_list = ["card", "ghost"],
       is_hovering = False,
+      is_editing = False,
     }
-  in let get_card_css card =
+    editing_card_css = {
+      inline = [
+        "z-index" => "1",
+        "cursor" => "text",
+      ],
+      class_list = ["card", "editing"],
+      is_hovering = False,
+      is_editing = True,
+    }
+  in let get_card_css_inner card =
     case dragging of
       Nothing -> normal_card_css
 
@@ -295,28 +363,57 @@ view ({board, dragging, hovering, drag} as model) =
                     hovering_card_css
                   else
                     normal_card_css
+  in let get_card_css card =
+    case editing of
+      Nothing -> get_card_css_inner card
+      Just editing ->
+        if editing.card.ident == card.ident then
+          editing_card_css
+        else
+          get_card_css_inner card
   in let view_card card_list_id card =
     let css = get_card_css card in (
       if css.is_hovering then
         dragging |> Maybe.map (\dragging ->
-          [H.div [
+          [Html.Lazy.lazy (\txt -> H.div [
             Att.style ghost_card_css.inline,
             Att.classList <|
               List.map (\c -> (c, True)) ghost_card_css.class_list,
+            Att.contenteditable False,
             Ev.onMouseEnter <| MouseEnterCard card.ident,
             Ev.onMouseLeave <| MouseLeaveCard card.ident,
             Ev.onMouseUp <| MouseUp,
-          ] [H.text dragging.card.text]]
+            Att.property "innerHTML" <| Encode.string txt,
+          ] []) dragging.card.text]
         ) |> Maybe.withDefault []
       else []
-    ) ++ [H.div [
-      Att.style css.inline,
-      Att.classList <| List.map (\c -> (c, True)) css.class_list,
-      Draggable.mouseTrigger (card_to_string (card, card_list_id)) DragMsg,
-      Ev.onMouseEnter <| MouseEnterCard card.ident,
-      Ev.onMouseLeave <| MouseLeaveCard card.ident,
-      Ev.onMouseUp <| MouseUp,
-    ] <| [H.text card.text]]
+    ) ++ (
+      if not css.is_editing then
+        [Html.Lazy.lazy (\txt -> H.div [
+          Att.style css.inline,
+          Att.classList <| List.map (\c -> (c, True)) css.class_list,
+          Att.contenteditable False,
+          Draggable.mouseTrigger (card_to_string (card, card_list_id)) DragMsg,
+          Ev.onMouseEnter <| MouseEnterCard card.ident,
+          Ev.onMouseLeave <| MouseLeaveCard card.ident,
+          Ev.onMouseUp <| MouseUp,
+          Ev.onClick <| EditStart card card_list_id,
+          Att.property "innerHTML" <| Encode.string txt,
+        ] <| []) card.text]
+      else
+        [Html.Lazy.lazy (\txt -> H.div [
+          Att.style css.inline,
+          Att.classList <| List.map (\c -> (c, True)) css.class_list,
+          Att.contenteditable True,
+          Att.id "editing_card_textbox",
+          Ev.onMouseEnter <| MouseEnterCard card.ident,
+          Ev.onMouseLeave <| MouseLeaveCard card.ident,
+          Ev.onMouseUp <| MouseUp,
+          onContentChange EditInProgress,
+          Ev.onBlur EditEnd,
+          Att.property "innerHTML" <| Encode.string txt,
+        ] <| []) card.text]
+    )
   in let view_card_list card_list = H.div [
     Att.class "card_list",
     Ev.onMouseEnter <| MouseEnterCardList card_list.ident,
