@@ -25,12 +25,12 @@ var supported_browsers = [
 var source = {
   elm: "elm/**/*.elm",
   elm_preprocessed: "elm_preprocessed",
-  html: "html/**/*.html",
+  html: "index.html",
   sass: "sass/**/*.sass"
 }
 var dest = {
   js: "/build/js",
-  html: "/build/html",
+  html: "/build",
   css: "/build/css"
 }
 
