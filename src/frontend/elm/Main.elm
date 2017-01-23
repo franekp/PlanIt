@@ -232,10 +232,8 @@ view ({board, dragging, hovering, drag} as model) =
               ++ "translateY(" ++ toString (round y) ++ "px) "
               ++ "scale(1.15, 1.15) "
             ),
-            "transition" => "transform 200ms",
             "pointer-events" => "none",
             "z-index" => "10",
-            "cursor" => "move",
           ]
         else
           case hovering of
@@ -249,6 +247,7 @@ view ({board, dragging, hovering, drag} as model) =
                   if hovering_card_id == card.ident then [
                     "border-top-color" => "red",
                     "border-top-width" => "4px",
+                    "cursor" => "move",
                   ] else []
   in let view_card card = H.div [
       Att.style <| [
@@ -261,6 +260,7 @@ view ({board, dragging, hovering, drag} as model) =
           "padding" => "8px",
           "background-color" => "white",
           "width" => "5em",
+          "cursor" => "default",
       ] ++ get_card_style card,
       Draggable.mouseTrigger (toString card.ident) DragMsg,
       Ev.onMouseEnter <| MouseEnterCard card.ident,
@@ -273,11 +273,20 @@ view ({board, dragging, hovering, drag} as model) =
       "border-style" => "solid",
       "border-color" => "black",
       "display" => "inline-block",
-      "cursor" => "default",
       "margin" => "12px",
       "vertical-align" => "top",
     ],
     Ev.onMouseEnter <| MouseEnterCardList card_list.ident,
     Ev.onMouseLeave <| MouseLeaveCardList card_list.ident,
   ] <| List.map view_card card_list.cards
-  in H.div [] <| List.map view_card_list board
+  in H.div [
+    Att.style <| [
+        "bottom" => "0px",
+        "top" => "0px",
+        "position" => "absolute",
+        "left" => "0px",
+        "right" => "0px",
+      ] ++ case dragging of
+        Nothing -> []
+        Just _ -> ["cursor" => "move"]
+  ] <| List.map view_card_list board
