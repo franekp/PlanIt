@@ -46,6 +46,8 @@ INSTALLED_APPS = [
     'django.contrib.sites',
 ]
 
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
 SITE_ID = 1
 
 REST_FRAMEWORK = {
@@ -121,20 +123,14 @@ AUTHENTICATION_BACKENDS = (
     # `allauth` specific authentication methods, such as login by e-mail
     "allauth.account.auth_backends.AuthenticationBackend"
 )
- 
-TEMPLATE_CONTEXT_PROCESSORS = (
-    "django.core.context_processors.request",
-    "django.contrib.auth.context_processors.auth",
-    "allauth.account.context_processors.account",
-    "allauth.socialaccount.context_processors.socialaccount",
-)
+
  
 # auth and allauth settings
-LOGIN_REDIRECT_URL = '/'
+LOGIN_REDIRECT_URL = '/api/'
 SOCIALACCOUNT_QUERY_EMAIL = True
 SOCIALACCOUNT_PROVIDERS = {
     'facebook': {
-        'SCOPE': ['email', 'publish_stream'],
+        'SCOPE': ['email', 'publish_actions'],
         'METHOD': 'js_sdk'  # instead of 'oauth2'
     }
 }
