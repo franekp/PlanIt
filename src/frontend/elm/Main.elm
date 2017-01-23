@@ -106,7 +106,7 @@ update msg ({board, dragging, hovering, drag} as model) =
 
         Nothing -> model ! []  -- should not be possible
 
-    DragEnd -> stop_dragging (Debug.log "DragEnd" model) ! []
+    DragEnd -> stop_dragging model ! []
 
     MouseEnterCardList card_list_id -> {
         model |
@@ -123,7 +123,7 @@ update msg ({board, dragging, hovering, drag} as model) =
         Nothing -> model ! []
 
         Just hovering ->
-          if hovering.card_list_id == Debug.log "MouseLeaveCardList" card_list_id then
+          if hovering.card_list_id == card_list_id then
             {model | hovering = Nothing} ! []
           else
             model ! []
@@ -215,17 +215,27 @@ view : Model -> Html Msg
 view ({board, dragging, hovering, drag} as model) =
   let
     dragging_card_css delta =
-      let (x, y) = delta in {
+      let
+        (x, y) = delta
+        is_any_card_hovering = case hovering of
+          Nothing -> False
+          Just hovering -> case hovering.card_id of
+            Nothing -> False
+            Just _ -> True
+        need_to_offset_up = is_any_card_hovering && y < 0
+      in {
         inline = [
           "transform" => (""
             ++ "translateX(" ++ toString (round x) ++ "px) "
             ++ "translateY(" ++ toString (round y) ++ "px) "
+            ++ (if need_to_offset_up then "translateY(-100%) " else "")
             ++ "scale(1.15, 1.15) "
           ),
           "pointer-events" => "none",
           "z-index" => "10",
         ],
         class_list = ["card", "dragging"],
+        is_hovering = False,
       }
     normal_card_css = {
       inline = [
@@ -233,10 +243,17 @@ view ({board, dragging, hovering, drag} as model) =
         "z-index" => "1",
       ],
       class_list = ["card"],
+      is_hovering = False,
     }
     hovering_card_css = {
-      inline = ["cursor" => "move"],
+      inline = ["z-index" => "1"],
       class_list = ["card", "hovering"],
+      is_hovering = True,
+    }
+    ghost_card_css = {
+      inline = ["z-index" => "1"],
+      class_list = ["card", "ghost"],
+      is_hovering = False,
     }
   in let get_card_css card =
     case dragging of
@@ -259,20 +276,30 @@ view ({board, dragging, hovering, drag} as model) =
                   else
                     normal_card_css
   in let view_card card =
-    let css = get_card_css card in
-    H.div [
+    let css = get_card_css card in (
+      if css.is_hovering then
+        [H.div [
+          Att.style ghost_card_css.inline,
+          Att.classList <|
+            List.map (\c -> (c, True)) ghost_card_css.class_list,
+          Ev.onMouseEnter <| MouseEnterCard card.ident,
+          Ev.onMouseLeave <| MouseLeaveCard card.ident,
+          Ev.onMouseUp <| MouseUp,
+        ] [H.text "------"]]
+      else []
+    ) ++ [H.div [
       Att.style css.inline,
       Att.classList <| List.map (\c -> (c, True)) css.class_list,
       Draggable.mouseTrigger (toString card.ident) DragMsg,
       Ev.onMouseEnter <| MouseEnterCard card.ident,
       Ev.onMouseLeave <| MouseLeaveCard card.ident,
       Ev.onMouseUp <| MouseUp,
-    ] <| [H.text card.text]
+    ] <| [H.text card.text]]
   in let view_card_list card_list = H.div [
     Att.class "card_list",
     Ev.onMouseEnter <| MouseEnterCardList card_list.ident,
     Ev.onMouseLeave <| MouseLeaveCardList card_list.ident,
-  ] <| List.map view_card card_list.cards
+  ] <| List.concat <| List.map view_card card_list.cards
   in H.div [
     Att.class "board",
     Att.style <| case dragging of
