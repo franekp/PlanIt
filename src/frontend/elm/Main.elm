@@ -10,18 +10,8 @@ import Draggable
 import Draggable.Events exposing (onDragBy, onDragStart, onDragEnd, onClick)
 -- onClick = mouseDown and mouseUp without a mouseMove in between
 
-import SortableList
 
 (:=) = Json.field
-
-{-
-main = Html.program {
-    init = SortableList.init,
-    update = SortableList.update,
-    subscriptions = SortableList.subscriptions,
-    view = SortableList.view,
-  }
--}
 
 main = Html.program {
     init = init [
@@ -66,6 +56,9 @@ type Msg =
   | MouseEnterCard CardId
   | MouseLeaveCard CardId
   | MouseUp
+  --| EditStart CardListId CardId
+  --| EditInProgress String
+  --| EditEnd
 
 init : List (List (Int, String)) -> (Model, Cmd Msg)
 init input = ({
