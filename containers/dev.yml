@@ -29,13 +29,13 @@ services:
       dockerfile: containers/nginx/Dockerfile
     volumes:
       - ../build:/build
-  elasticsearch:
-    build:
-      context: ..
-      dockerfile: containers/elasticsearch/Dockerfile
-    ports:
-    - 9200:9200
-    - 9300:9300
+#  elasticsearch:
+#    build:
+#      context: ..
+#      dockerfile: containers/elasticsearch/Dockerfile
+#    ports:
+#    - 9200:9200
+#    - 9300:9300
   web:
     build:
       context: ..
