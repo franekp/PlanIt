@@ -195,43 +195,36 @@ stop_dragging ({board, dragging, hovering, drag} as model) =
         Nothing -> {model | dragging = Nothing}
 
         Just hovering ->
-          let dragging_card =
-            board |> List.concatMap (.cards)
-            |> List.filter (.ident >> ((==) dragging.card.ident)) |> List.head
-          in case dragging_card of
-            Nothing -> {model | dragging = Nothing}  -- should not be possible
+          let update_card_list ({ident} as card_list) =
+            let cards =
+              card_list.cards
+              |> List.filter (.ident >> ((/=) dragging.card.ident))
+            in if ident /= hovering.card_list_id then
+              {ident = ident, cards = cards}
+            else
+              case hovering.card_id of
+                Nothing ->
+                  {ident = ident, cards = cards ++ [dragging.card]}
 
-            Just dragging_card ->
-              let update_card_list ({ident} as card_list) =
-                let cards =
-                  card_list.cards
-                  |> List.filter (.ident >> ((/=) dragging.card.ident))
-                in if ident /= hovering.card_list_id then
-                  {ident = ident, cards = cards}
-                else
-                  case hovering.card_id of
-                    Nothing ->
-                      {ident = ident, cards = cards ++ [dragging_card]}
+                Just hovering_card_id ->
+                  if hovering_card_id == dragging.card.ident then card_list
+                  else let insert_helper input output =
+                    case input of
+                      [] -> output
 
-                    Just hovering_card_id ->
-                      if hovering_card_id == dragging.card.ident then card_list
-                      else let insert_helper input output =
-                        case input of
-                          [] -> output
-
-                          h::t ->
-                            if h.ident == hovering_card_id then
-                              insert_helper t (h::dragging_card::output)
-                            else
-                              insert_helper t (h::output)
-                      in let insert_into input =
-                        insert_helper input [] |> List.reverse
-                      in {ident = ident, cards = insert_into cards}
-              in {
-                model |
-                dragging = Nothing,
-                board = List.map update_card_list model.board,
-              }
+                      h::t ->
+                        if h.ident == hovering_card_id then
+                          insert_helper t (h::dragging.card::output)
+                        else
+                          insert_helper t (h::output)
+                  in let insert_into input =
+                    insert_helper input [] |> List.reverse
+                  in {ident = ident, cards = insert_into cards}
+          in {
+            model |
+            dragging = Nothing,
+            board = List.map update_card_list model.board,
+          }
 
 (=>) = \a -> \b -> (a, b)
 
@@ -255,7 +248,8 @@ view ({board, dragging, hovering, drag} as model) =
             ++ "translateX(" ++ toString (round x) ++ "px) "
             ++ "translateY(" ++ toString (round y) ++ "px) "
             ++ (if need_to_offset_up then "translateY(-100%) " else "")
-            ++ "scale(1.15, 1.15) "
+            ++ "scale(0.85, 0.85) "
+            ++ "rotate(5deg)"
           ),
           "pointer-events" => "none",
           "z-index" => "10",
