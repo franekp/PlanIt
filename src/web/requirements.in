@@ -2,3 +2,4 @@ django
 djangorestframework
 pygments
 python-memcached
+django-allauth
