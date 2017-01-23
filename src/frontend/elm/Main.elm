@@ -16,8 +16,14 @@ import Draggable.Events exposing (onDragBy, onDragStart, onDragEnd, onClick)
 main = Html.program {
     init = init [
       [1 => "item1", 2 => "item2", 3 => "item3"],
-      [4 => "item4", 5 => "item5"],
-      [7 => "item7", 8 => "item8"],
+      [4 => "item4", 5 => (
+        "item5 asdjhgfkldsjah ashfgulhsadlfk slkdjahf asdfsdf asdf sad fsadf"
+        ++ "asdfasdf sadf sdfsdaas df dsfsadfdsa fsdafsad fsadf sdafsd fsdfs"
+      )],
+      [7 => "item7", 8 => (
+        "item5 asdjhgfkldsjah ashfgulhsadlfk slkdjahf asdfsdf asdf sad fsadf"
+        ++ "asdfasdf sadf sdfsdaas df dsfsadfdsa fsdafsad fsadf sdafsd fsdfs"
+      )],
     ],
     update = update,
     subscriptions = subscriptions,
@@ -298,14 +304,16 @@ view ({board, dragging, hovering, drag} as model) =
   in let view_card card_list_id card =
     let css = get_card_css card in (
       if css.is_hovering then
-        [H.div [
-          Att.style ghost_card_css.inline,
-          Att.classList <|
-            List.map (\c -> (c, True)) ghost_card_css.class_list,
-          Ev.onMouseEnter <| MouseEnterCard card.ident,
-          Ev.onMouseLeave <| MouseLeaveCard card.ident,
-          Ev.onMouseUp <| MouseUp,
-        ] [H.text "------"]]
+        dragging |> Maybe.map (\dragging ->
+          [H.div [
+            Att.style ghost_card_css.inline,
+            Att.classList <|
+              List.map (\c -> (c, True)) ghost_card_css.class_list,
+            Ev.onMouseEnter <| MouseEnterCard card.ident,
+            Ev.onMouseLeave <| MouseLeaveCard card.ident,
+            Ev.onMouseUp <| MouseUp,
+          ] [H.text dragging.card.text]]
+        ) |> Maybe.withDefault []
       else []
     ) ++ [H.div [
       Att.style css.inline,
