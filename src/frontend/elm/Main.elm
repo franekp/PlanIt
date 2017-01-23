@@ -213,73 +213,69 @@ stop_dragging ({board, dragging, hovering, drag} as model) =
 
 view : Model -> Html Msg
 view ({board, dragging, hovering, drag} as model) =
-  let get_card_style card =
+  let
+    dragging_card_css delta =
+      let (x, y) = delta in {
+        inline = [
+          "transform" => (""
+            ++ "translateX(" ++ toString (round x) ++ "px) "
+            ++ "translateY(" ++ toString (round y) ++ "px) "
+            ++ "scale(1.15, 1.15) "
+          ),
+          "pointer-events" => "none",
+          "z-index" => "10",
+        ],
+        class_list = ["card", "dragging"],
+      }
+    normal_card_css = {
+      inline = [
+        "cursor" => "default",
+        "z-index" => "1",
+      ],
+      class_list = ["card"],
+    }
+    hovering_card_css = {
+      inline = ["cursor" => "move"],
+      class_list = ["card", "hovering"],
+    }
+  in let get_card_css card =
     case dragging of
-      Nothing -> []
+      Nothing -> normal_card_css
 
       Just dragging ->
         if dragging.card_id == card.ident then
-          let (x, y) = dragging.delta in [
-            "transform" => (
-              "translateX(" ++ toString (round x) ++ "px) "
-              ++ "translateY(" ++ toString (round y) ++ "px) "
-              ++ "scale(1.15, 1.15) "
-            ),
-            "pointer-events" => "none",
-            "z-index" => "10",
-          ]
+          dragging_card_css dragging.delta
         else
           case hovering of
-            Nothing -> []
+            Nothing -> normal_card_css
 
             Just hovering ->
               case hovering.card_id of
-                Nothing -> []
+                Nothing -> normal_card_css
 
                 Just hovering_card_id ->
-                  if hovering_card_id == card.ident then [
-                    "border-top-color" => "red",
-                    "border-top-width" => "4px",
-                    "cursor" => "move",
-                  ] else []
-  in let view_card card = H.div [
-      Att.style <| [
-          "border-width" => "2px",
-          "border-style" => "solid",
-          "border-color" => "gray",
-          "border-top-color" => "gray",
-          "border-top-width" => "2px",
-          "margin" => "5px",
-          "padding" => "8px",
-          "background-color" => "white",
-          "width" => "5em",
-          "cursor" => "default",
-      ] ++ get_card_style card,
+                  if hovering_card_id == card.ident then
+                    hovering_card_css
+                  else
+                    normal_card_css
+  in let view_card card =
+    let css = get_card_css card in
+    H.div [
+      Att.style css.inline,
+      Att.classList <| List.map (\c -> (c, True)) css.class_list,
       Draggable.mouseTrigger (toString card.ident) DragMsg,
       Ev.onMouseEnter <| MouseEnterCard card.ident,
       Ev.onMouseLeave <| MouseLeaveCard card.ident,
       Ev.onMouseUp <| MouseUp,
     ] <| [H.text card.text]
   in let view_card_list card_list = H.div [
-    Att.style [
-      "border-width" => "3",
-      "border-style" => "solid",
-      "border-color" => "black",
-      "display" => "inline-block",
-      "margin" => "12px",
-      "vertical-align" => "top",
-    ],
+    Att.class "card_list",
     Ev.onMouseEnter <| MouseEnterCardList card_list.ident,
     Ev.onMouseLeave <| MouseLeaveCardList card_list.ident,
   ] <| List.map view_card card_list.cards
   in H.div [
-    Att.style <| [
-        "bottom" => "0px",
-        "top" => "0px",
-        "position" => "absolute",
-        "left" => "0px",
-        "right" => "0px",
-      ] ++ case dragging of
+    Att.class "board",
+    Att.style <| case dragging of
         Nothing -> []
         Just _ -> ["cursor" => "move"]
   ] <| List.map view_card_list board
