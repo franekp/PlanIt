@@ -14,32 +14,33 @@ import SortableList
 
 (:=) = Json.field
 
-
+{-
 main = Html.program {
     init = SortableList.init,
     update = SortableList.update,
     subscriptions = SortableList.subscriptions,
     view = SortableList.view,
   }
+-}
 
-{-
 main = Html.program {
     init = init [
-      ["item1", "item2", "item3"],
-      ["item4", "item5"],
-      ["item7". "item8"],
+      [1 => "item1", 2 => "item2", 3 => "item3"],
+      [4 => "item4", 5 => "item5"],
+      [7 => "item7", 8 => "item8"],
     ],
     update = update,
     subscriptions = subscriptions,
     view = view,
   }
--}
+
 
 type alias Model = {
   board : List CardList,
   dragging : Maybe {card_id : CardId, delta: Draggable.Delta},
   hovering : Maybe {card_id : Maybe CardId, card_list_id : CardListId},
   drag : Draggable.State,
+  google_chrome_mouse_up_hack : {card : Bool, card_list : Bool},
 }
 
 type alias CardId = Int
@@ -64,13 +65,17 @@ type Msg =
   | MouseLeaveCardList CardListId
   | MouseEnterCard CardId
   | MouseLeaveCard CardId
+  | MouseUp
 
-init : List (List String) -> (Model, Cmd Msg)
+init : List (List (Int, String)) -> (Model, Cmd Msg)
 init input = ({
-    board = List.indexedMap (\i -> List.indexedMap Card >> CardList i) input,
+    board = List.indexedMap (\i -> \li -> CardList i <|
+        List.map (\(id, text) -> {ident = id, text = text}) li
+      ) input,
     dragging = Nothing,
     hovering = Nothing,
     drag = Draggable.init,
+    google_chrome_mouse_up_hack = {card = False, card_list = False},
   }, Cmd.none)
 
 dragConfig : Draggable.Config Msg
@@ -108,14 +113,59 @@ update msg ({board, dragging, hovering, drag} as model) =
 
         Nothing -> model ! []  -- should not be possible
 
-    DragEnd -> stop_dragging model ! []
+    DragEnd -> stop_dragging (Debug.log "DragEnd" model) ! []
 
-    -- TODO TODO TODO
-    MouseEnterCardList card_list_id -> model ! []
-    MouseLeaveCardList card_list_id -> model ! []
-    MouseEnterCard card_id -> model ! []
-    MouseLeaveCard card_id -> model ! []
+    MouseEnterCardList card_list_id -> {
+        model |
+        hovering = Just {card_id = Nothing, card_list_id = card_list_id}
+      } ! []
 
+    MouseLeaveCardList card_list_id ->
+      let google_chrome_mouse_up_hack = model.google_chrome_mouse_up_hack in
+      if model.google_chrome_mouse_up_hack.card_list then {
+          model | google_chrome_mouse_up_hack = {
+            google_chrome_mouse_up_hack | card_list = False
+        }} ! []
+      else case hovering of
+        Nothing -> model ! []
+
+        Just hovering ->
+          if hovering.card_list_id == Debug.log "MouseLeaveCardList" card_list_id then
+            {model | hovering = Nothing} ! []
+          else
+            model ! []
+
+    MouseEnterCard card_id ->
+      case hovering of
+        Nothing -> model ! []  -- TODO some error message
+
+        Just hovering -> {
+            model |
+            hovering = Just {hovering | card_id = Just card_id}
+          } ! []
+
+    MouseLeaveCard card_id ->
+      let google_chrome_mouse_up_hack = model.google_chrome_mouse_up_hack in
+      if model.google_chrome_mouse_up_hack.card then {
+          model | google_chrome_mouse_up_hack = {
+            google_chrome_mouse_up_hack | card = False
+        }} ! []
+      else case hovering of
+        Nothing -> model ! []
+
+        Just hovering ->
+          case hovering.card_id of
+            Nothing -> model ! []
+
+            Just hovering_card_id ->
+              if card_id == Debug.log "MouseLeaveCard" hovering_card_id then
+                {model | hovering = Just {hovering | card_id = Nothing}} ! []
+              else
+                model ! []
+
+    MouseUp -> {
+        model | google_chrome_mouse_up_hack = {card = True, card_list = True}
+      } ! Debug.log "MouseUp" []
 
 stop_dragging : Model -> Model
 stop_dragging ({board, dragging, hovering, drag} as model) =
@@ -147,7 +197,8 @@ stop_dragging ({board, dragging, hovering, drag} as model) =
                       {ident = ident, cards = cards ++ [dragging_card]}
 
                     Just hovering_card_id ->
-                      let insert_helper input output =
+                      if hovering_card_id == dragging.card_id then card_list
+                      else let insert_helper input output =
                         case input of
                           [] -> output
 
@@ -164,3 +215,69 @@ stop_dragging ({board, dragging, hovering, drag} as model) =
                 dragging = Nothing,
                 board = List.map update_card_list model.board,
               }
+
+(=>) = \a -> \b -> (a, b)
+
+view : Model -> Html Msg
+view ({board, dragging, hovering, drag} as model) =
+  let get_card_style card =
+    case dragging of
+      Nothing -> []
+
+      Just dragging ->
+        if dragging.card_id == card.ident then
+          let (x, y) = dragging.delta in [
+            "transform" => (
+              "translateX(" ++ toString (round x) ++ "px) "
+              ++ "translateY(" ++ toString (round y) ++ "px) "
+              ++ "scale(1.15, 1.15) "
+            ),
+            "transition" => "transform 200ms",
+            "pointer-events" => "none",
+            "z-index" => "10",
+            "cursor" => "move",
+          ]
+        else
+          case hovering of
+            Nothing -> []
+
+            Just hovering ->
+              case hovering.card_id of
+                Nothing -> []
+
+                Just hovering_card_id ->
+                  if hovering_card_id == card.ident then [
+                    "border-top-color" => "red",
+                    "border-top-width" => "4px",
+                  ] else []
+  in let view_card card = H.div [
+      Att.style <| [
+          "border-width" => "2px",
+          "border-style" => "solid",
+          "border-color" => "gray",
+          "border-top-color" => "gray",
+          "border-top-width" => "2px",
+          "margin" => "5px",
+          "padding" => "8px",
+          "background-color" => "white",
+          "width" => "5em",
+      ] ++ get_card_style card,
+      Draggable.mouseTrigger (toString card.ident) DragMsg,
+      Ev.onMouseEnter <| MouseEnterCard card.ident,
+      Ev.onMouseLeave <| MouseLeaveCard card.ident,
+      Ev.onMouseUp <| MouseUp,
+    ] <| [H.text card.text]
+  in let view_card_list card_list = H.div [
+    Att.style [
+      "border-width" => "3",
+      "border-style" => "solid",
+      "border-color" => "black",
+      "display" => "inline-block",
+      "cursor" => "default",
+      "margin" => "12px",
+      "vertical-align" => "top",
+    ],
+    Ev.onMouseEnter <| MouseEnterCardList card_list.ident,
+    Ev.onMouseLeave <| MouseLeaveCardList card_list.ident,
+  ] <| List.map view_card card_list.cards
+  in H.div [] <| List.map view_card_list board
