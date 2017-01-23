@@ -27,7 +27,9 @@ main = Html.program {
 
 type alias Model = {
   board : List CardList,
-  dragging : Maybe {card_id : CardId, delta: Draggable.Delta},
+  dragging : Maybe {
+    card : Card, delta: Draggable.Delta, card_list_id : CardListId,
+  },
   hovering : Maybe {card_id : Maybe CardId, card_list_id : CardListId},
   drag : Draggable.State,
   google_chrome_mouse_up_hack : {card : Bool, card_list : Bool},
@@ -60,6 +62,21 @@ type Msg =
   --| EditInProgress String
   --| EditEnd
 
+card_to_string : (Card, CardListId) -> String
+card_to_string ({ident, text}, card_list_id) =
+  toString card_list_id ++ "\n" ++ toString ident ++ "\n" ++ text
+
+card_from_string : String -> Maybe (Card, CardListId)
+card_from_string str =
+  case String.split "\n" str of
+    [card_list_id, ident, text] ->
+      (Maybe.map2 (\card_list_id -> \ident ->
+        ({ident = ident, text = text}, card_list_id)
+      ))
+      (card_list_id |> String.toInt |> Result.toMaybe)
+      (ident |> String.toInt |> Result.toMaybe)
+    _ -> Nothing
+
 init : List (List (Int, String)) -> (Model, Cmd Msg)
 init input = ({
     board = List.indexedMap (\i -> \li -> CardList i <|
@@ -89,17 +106,18 @@ update msg ({board, dragging, hovering, drag} as model) =
     DragMsg dragMsg ->
       Draggable.update dragConfig dragMsg model
 
-    DragStart ugly_dragging_string_index -> {
+    DragStart string_representing_card -> {
         model |
-        dragging = ugly_dragging_string_index
-          |> String.toInt |> Result.toMaybe
-          |> Maybe.map (\card_id -> {card_id = card_id, delta = (0.0, 0.0)})
+        dragging = card_from_string string_representing_card
+          |> Maybe.map (\(card, card_list_id) -> {
+            card = card, delta = (0.0, 0.0), card_list_id = card_list_id,
+          })
       } ! []
 
     DragBy dragged_delta ->
       let apply_delta (a, b) (c, d) = (a + c, b + d) in
       case dragging of
-        Just ({card_id, delta} as dragging) -> {
+        Just ({card, delta} as dragging) -> {
             model |
             dragging = Just {dragging | delta = apply_delta delta dragged_delta}
           } ! []
@@ -151,14 +169,14 @@ update msg ({board, dragging, hovering, drag} as model) =
             Nothing -> model ! []
 
             Just hovering_card_id ->
-              if card_id == Debug.log "MouseLeaveCard" hovering_card_id then
+              if card_id == hovering_card_id then
                 {model | hovering = Just {hovering | card_id = Nothing}} ! []
               else
                 model ! []
 
     MouseUp -> {
         model | google_chrome_mouse_up_hack = {card = True, card_list = True}
-      } ! Debug.log "MouseUp" []
+      } ! []
 
 stop_dragging : Model -> Model
 stop_dragging ({board, dragging, hovering, drag} as model) =
@@ -173,7 +191,7 @@ stop_dragging ({board, dragging, hovering, drag} as model) =
         Just hovering ->
           let dragging_card =
             board |> List.concatMap (.cards)
-            |> List.filter (.ident >> ((==) dragging.card_id)) |> List.head
+            |> List.filter (.ident >> ((==) dragging.card.ident)) |> List.head
           in case dragging_card of
             Nothing -> {model | dragging = Nothing}  -- should not be possible
 
@@ -181,7 +199,7 @@ stop_dragging ({board, dragging, hovering, drag} as model) =
               let update_card_list ({ident} as card_list) =
                 let cards =
                   card_list.cards
-                  |> List.filter (.ident >> ((/=) dragging.card_id))
+                  |> List.filter (.ident >> ((/=) dragging.card.ident))
                 in if ident /= hovering.card_list_id then
                   {ident = ident, cards = cards}
                 else
@@ -190,7 +208,7 @@ stop_dragging ({board, dragging, hovering, drag} as model) =
                       {ident = ident, cards = cards ++ [dragging_card]}
 
                     Just hovering_card_id ->
-                      if hovering_card_id == dragging.card_id then card_list
+                      if hovering_card_id == dragging.card.ident then card_list
                       else let insert_helper input output =
                         case input of
                           [] -> output
@@ -217,12 +235,14 @@ view ({board, dragging, hovering, drag} as model) =
     dragging_card_css delta =
       let
         (x, y) = delta
-        is_any_card_hovering = case hovering of
+        need_to_offset_up = case hovering of
           Nothing -> False
           Just hovering -> case hovering.card_id of
             Nothing -> False
-            Just _ -> True
-        need_to_offset_up = is_any_card_hovering && y < 0
+            Just _ -> case dragging of
+              Nothing -> False  -- should not be possible
+              Just dragging ->
+                dragging.card_list_id == hovering.card_list_id && y < 0
       in {
         inline = [
           "transform" => (""
@@ -260,7 +280,7 @@ view ({board, dragging, hovering, drag} as model) =
       Nothing -> normal_card_css
 
       Just dragging ->
-        if dragging.card_id == card.ident then
+        if dragging.card.ident == card.ident then
           dragging_card_css dragging.delta
         else
           case hovering of
@@ -275,7 +295,7 @@ view ({board, dragging, hovering, drag} as model) =
                     hovering_card_css
                   else
                     normal_card_css
-  in let view_card card =
+  in let view_card card_list_id card =
     let css = get_card_css card in (
       if css.is_hovering then
         [H.div [
@@ -290,7 +310,7 @@ view ({board, dragging, hovering, drag} as model) =
     ) ++ [H.div [
       Att.style css.inline,
       Att.classList <| List.map (\c -> (c, True)) css.class_list,
-      Draggable.mouseTrigger (toString card.ident) DragMsg,
+      Draggable.mouseTrigger (card_to_string (card, card_list_id)) DragMsg,
       Ev.onMouseEnter <| MouseEnterCard card.ident,
       Ev.onMouseLeave <| MouseLeaveCard card.ident,
       Ev.onMouseUp <| MouseUp,
@@ -299,7 +319,7 @@ view ({board, dragging, hovering, drag} as model) =
     Att.class "card_list",
     Ev.onMouseEnter <| MouseEnterCardList card_list.ident,
     Ev.onMouseLeave <| MouseLeaveCardList card_list.ident,
-  ] <| List.concat <| List.map view_card card_list.cards
+  ] <| List.concat <| List.map (view_card card_list.ident) card_list.cards
   in H.div [
     Att.class "board",
     Att.style <| case dragging of
