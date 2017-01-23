@@ -63,11 +63,14 @@ def api_root(request, format=None):
             'cards-in-parking-lot-list', request=request, format=format)
     })
 
- 
-def photo(self):
-    fb_uid = SocialAccount.objects.filter(user_id=self.user.id, provider='facebook')
+@api_view(['GET'])
+def photo(request, format=None):
+    fb_uid = SocialAccount.objects.filter(user_id=request.user.id, provider='facebook')
  
     if len(fb_uid):
-        return HttpResponse("http://graph.facebook.com/{}/picture?width=40&height=40".format(fb_uid[0].uid))
- 
-    return "http://www.gravatar.com/avatar/{}?s=40".format(hashlib.md5(self.user.email).hexdigest())
+	    return Response({
+		    'photo': "http://graph.facebook.com/{}/picture?width=40&height=40".format(fb_uid[0].uid)
+		})
+    return Response ({
+        'photo': "http://www.gravatar.com/avatar/{}?s=40".format(hashlib.md5(request.user.email).hexdigest())
+    })
