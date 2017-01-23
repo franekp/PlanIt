@@ -26,7 +26,8 @@ var source = {
   elm: "elm/**/*.elm",
   elm_preprocessed: "elm_preprocessed",
   html: "index.html",
-  sass: "sass/**/*.sass"
+  sass: "sass/**/*.sass",
+  normalize: "sass/**/*.css"
 }
 var dest = {
   js: "/build/js",
@@ -72,6 +73,11 @@ gulp.task('elm:watch', function() {
   return gulp.watch(source.elm, ['elm:build'])
 })
 
+gulp.task('css:copy', function () {
+  return gulp.src(source.normalize)
+  .pipe(gulp.dest(dest.css))	
+})
+
 gulp.task('html:build', function() {
   // nothing happens, just copy the files
   return gulp.src(source.html)
@@ -82,7 +88,7 @@ gulp.task('html:watch', function() {
   return gulp.watch(source.html, ['html:build'])
 })
 
-gulp.task('sass:build', function() {
+gulp.task('sass:build', ["css:copy"], function() {
   return gulp.src(source.sass).pipe(plumber())
     .pipe(sourcemaps.init())
     .pipe(sass({
@@ -105,3 +111,4 @@ gulp.task('sass:watch', function() {
 
 gulp.task('build', ['elm:build', 'html:build', 'sass:build'])
 gulp.task('watch', ['elm:watch', 'html:watch', 'sass:watch'])
+gulp.task('copy', ['css:copy'])

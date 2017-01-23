@@ -2,12 +2,14 @@ from web.settings.base import *
 
 DEBUG = False
 
+ALLOWED_HOSTS = ['localhost']
+
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
         'LOCATION': [
-            ':::11211',
-            ':::11212',
+            'memcached1:11211',
+            'memcached2:11211',
         ]
     }
 }

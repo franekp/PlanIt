@@ -15,9 +15,11 @@ Including another URLconf
 """
 from django.conf.urls import url, include
 from django.contrib.admin import site as admin_site
+from django.views.generic import TemplateView
 import allauth
 
 import PlanIt.urls
+import PlanIt.views
 
 
 urlpatterns = [
@@ -27,4 +29,6 @@ urlpatterns = [
         'rest_framework.urls', namespace='rest_framework'
     )),
     url(r'^accounts/', include('allauth.urls')),
+    url(r'^manage/', TemplateView.as_view(template_name="manage.html")),
+    url(r'^photo/', PlanIt.views.photo, name='photo'),
 ]
