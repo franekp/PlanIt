@@ -34,14 +34,23 @@ h1
   vertical-align: top
   min-width: 150px
   width: 12%
+  > button.add_card
+    background-color: white
+    color: black
+    border: 2px solid #008CBA
+    &.hovering
+      background-color: #008CBA
+      color: white
+
 
 .board
   padding: 20px
 
 .navbar
-  padding: 20px
+  padding: 10px
   line-height: 40px
   background-color: #91A0CB
+  height: 50px
 
 .error
   background-color: red
@@ -59,7 +68,7 @@ h1
 .profile_link
   float: right
   height: 40px
-  width: 250px
+  //width: 250px
   vertical-align: middle
 
 .name
@@ -71,29 +80,82 @@ h1
   font-weight: bold
   margin-right: 5px
   height: 40px
-  color: black
+  color: #13395F
   &.visited
-    color: black
+    color: #13395F
   
 .brand
-  margin-right: 10px
+  margin-right: 20px
   height: 40px
+  text-weight: bold
+  font-size: 35px
+  text-decoration: none
+  color: black
+  font-family: "Arial"
+  &.visited
+    color: black
 
-.logout-link
+.logout_link
+  text-decoration: none
+  font-weight: bold
+  margin-right: 5px
   height: 40px
+  color: #13395F
+  &.visited
+    color: #13395F
+    
+.profile_link    
+  text-decoration: none
+  font-weight: bold
+  margin-right: 5px
+  height: 40px
+  color: #13395F
+  &.visited
+    color: #13395F   
+ 
+.register_link    
+  text-decoration: none
+  font-weight: bold
+  margin-right: 5px
+  height: 40px
+  color: #13395F
+  &.visited
+    color: #13395F    
+    
+.tit   
+  text-decoration: none
+  font-weight: bold
+  margin-right: 5px
+  height: 40px
+  color: #13395F
+  &.visited
+    color: #13395F     
+  
+.link    
+  text-decoration: none
+  font-weight: bold
+  margin-right: 5px
+  height: 40px
+  color: #13395F
+  &.visited
+    color: #13395F    
   
 #profile
   text-decoration: none
   list-style: none
-  .link
-    text-decoration: none
-    color: #2B5B8B
+  
+.lista
+  padding: 10px
+  font-size: 20px
     
-#podglad
+#podglad   
   text-decoration: none
-  list-style: none
+  font-weight: bold
+  margin-right: 5px
+  height: 40px
+  color: #13395F
   &.visited
-    color: black
+    color: #13395F  
   
 .photo
   display:inline-block
@@ -102,7 +164,10 @@ h1
   margin-right: 20px
   float: right  
   
-  
+.please_log_in
+  text-align: center
+  font-weight: normal
+  color: #AC0606 
   
   
   
