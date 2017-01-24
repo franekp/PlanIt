@@ -21,7 +21,7 @@ services:
       dockerfile: containers/web/Dockerfile
     command: |
       bash -c '\
-      ./manage.py migrate --noinput --settings=web.settings.demo && ./manage.py shell --settings=web.settings.demo < create_admin && ./manage.py runserver 0.0.0.0:80 --settings=web.settings.demo \
+      ./manage.py migrate --noinput --settings=web.settings.demo && ./manage.py shell --settings=web.settings.demo < create_admin && ./manage.py runserver 0.0.0.0:80 --settings=web.settings.demo --insecure \
       '
   web2:
     build:
@@ -29,7 +29,7 @@ services:
       dockerfile: containers/web/Dockerfile
     command: |
       bash -c '\
-      ./manage.py runserver 0.0.0.0:80 --settings=web.settings.demo \
+      ./manage.py runserver 0.0.0.0:80 --settings=web.settings.demo --insecure \
       '
   web3:
     build:
@@ -37,7 +37,7 @@ services:
       dockerfile: containers/web/Dockerfile
     command: |
       bash -c '\
-      ./manage.py runserver 0.0.0.0:80 --settings=web.settings.demo \
+      ./manage.py runserver 0.0.0.0:80 --settings=web.settings.demo --insecure \
       '
   worker:
     build:
