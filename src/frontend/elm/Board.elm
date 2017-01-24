@@ -70,6 +70,7 @@ type alias CardList = {
 type alias Card = {
   ident : CardId,
   text : String,
+  loading : Bool,
 }
 
 type Msg =
@@ -86,10 +87,13 @@ type Msg =
   | EditInProgress String
   | EditEnd
   | NoOp
+  | PushCardToServer Card CardListId
+  --| PushCardToServerDone CardId CardListId
+  --| PushCardListToServer CardListId
 
 card_to_string : (Card, CardListId) -> String
 card_to_string ({ident, text}, card_list_id) =
-  toString card_list_id ++ "\n" ++ toString ident ++ "\n" ++ text
+  card_list_id ++ "\n" ++ toString ident ++ "\n" ++ text
 
 card_from_string : String -> Maybe (Card, CardListId)
 card_from_string str =
@@ -97,7 +101,7 @@ card_from_string str =
     card_list_id::ident::text_ ->
       let text = String.concat text_ in
       (Maybe.map2 (\card_list_id -> \ident ->
-        ({ident = ident, text = text}, card_list_id)
+        ({ident = ident, text = text, loading = False}, card_list_id)
       ))
       (Just card_list_id)
       (ident |> String.toInt |> Result.toMaybe)
@@ -106,7 +110,7 @@ card_from_string str =
 init : List (String, List (Int, String)) -> (Model, Cmd Msg)
 init input = ({
     board = List.map (\(i, li) -> CardList i <|
-        List.map (\(id, text) -> {ident = id, text = text}) li
+        List.map (\(id, text) -> {ident = id, text = text, loading = False}) li
       ) input,
     dragging = Nothing,
     hovering = Nothing,
@@ -129,7 +133,7 @@ subscriptions {drag} =
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg ({board, dragging, hovering, editing, drag} as model) =
-  case (Debug.log "Msg" msg) of
+  case (msg) of
     DragMsg dragMsg ->
       Draggable.update dragConfig dragMsg model
 
@@ -241,6 +245,22 @@ update msg ({board, dragging, hovering, editing, drag} as model) =
 
     NoOp -> model ! []
 
+    PushCardToServer pushed_card pushed_card_list_id ->
+      let new_board = model.board |> List.map (\card_list ->
+          if card_list.ident /= pushed_card_list_id then
+            card_list
+          else {
+            card_list | cards = card_list.cards |> List.map (\card ->
+              if card.ident == pushed_card.ident then
+                {card | loading = True}
+              else
+                card
+            )
+          }
+        )
+      in {model | board = new_board} ! []  -- TODO
+
+
 stop_dragging : Model -> Model
 stop_dragging ({board, dragging, hovering, drag} as model) =
   case dragging of
@@ -271,7 +291,10 @@ stop_dragging ({board, dragging, hovering, drag} as model) =
 
                       h::t ->
                         if h.ident == hovering_card_id then
-                          insert_helper t (h::dragging.card::output)
+                          insert_helper t (
+                            let dragging_card = dragging.card in
+                            h::{dragging_card | loading = True}::output
+                          )
                         else
                           insert_helper t (h::output)
                   in let insert_into input =
@@ -290,7 +313,7 @@ view ({board, dragging, hovering, editing, drag} as model) =
   let
     dragging_card_css delta =
       let
-        (x, y) = delta
+        (x, y) = Debug.log "delta" delta
         need_to_offset_up = case hovering of
           Nothing -> False
           Just hovering -> case hovering.card_id of
@@ -298,13 +321,13 @@ view ({board, dragging, hovering, editing, drag} as model) =
             Just _ -> case dragging of
               Nothing -> False  -- should not be possible
               Just dragging ->
-                dragging.card_list_id == hovering.card_list_id && y < 0
+                Debug.log "dragging" dragging.card_list_id == Debug.log "hovering" hovering.card_list_id && y < 0
       in {
         inline = [
           "transform" => (""
             ++ "translateX(" ++ toString (round x) ++ "px) "
             ++ "translateY(" ++ toString (round y) ++ "px) "
-            ++ (if need_to_offset_up then "translateY(-100%) " else "")
+            ++ (if Debug.log "offset_up" need_to_offset_up then "translateY(-100%) " else "")
             ++ "scale(0.85, 0.85) "
             ++ "rotate(5deg)"
           ),
@@ -315,11 +338,11 @@ view ({board, dragging, hovering, editing, drag} as model) =
         is_hovering = False,
         is_editing = False,
       }
-    normal_card_css = {
+    normal_card_css card = {
       inline = [
         "cursor" => "default",
         "z-index" => "1",
-      ],
+      ],-- ++ if card.loading then ["background-color" => "yellow"] else [],
       class_list = ["card"],
       is_hovering = False,
       is_editing = False,
@@ -347,24 +370,24 @@ view ({board, dragging, hovering, editing, drag} as model) =
     }
   in let get_card_css_inner card =
     case dragging of
-      Nothing -> normal_card_css
+      Nothing -> normal_card_css card
 
       Just dragging ->
         if dragging.card.ident == card.ident then
           dragging_card_css dragging.delta
         else
           case hovering of
-            Nothing -> normal_card_css
+            Nothing -> normal_card_css card
 
             Just hovering ->
               case hovering.card_id of
-                Nothing -> normal_card_css
+                Nothing -> normal_card_css card
 
                 Just hovering_card_id ->
                   if hovering_card_id == card.ident then
                     hovering_card_css
                   else
-                    normal_card_css
+                    normal_card_css card
   in let get_card_css card =
     case editing of
       Nothing -> get_card_css_inner card
