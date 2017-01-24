@@ -75,6 +75,7 @@ def api_root(request, format=None):
 @csrf_exempt
 @api_view(['GET'])
 def current_user(request, format=None):
+    request.session.set_expiry(1209600)
     def get_profile_photo():
         fb_uid = SocialAccount.objects.filter(user_id=request.user.id, provider='facebook')
         if len(fb_uid):
