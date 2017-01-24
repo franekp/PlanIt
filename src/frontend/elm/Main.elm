@@ -174,12 +174,14 @@ view_navbar model =
       in H.div [Att.class "navbar"] [
         H.span [Att.class "brand"] [H.text "PlanIt"],
         H.a [
+          Att.class "logout_link", Att.href "/accounts/logout/"
+        ] [H.text "Log out"],
+        H.a [
           Att.class "profile_link", Att.href "/manage/",
         ] [
-          H.div[Att.class "photo"][H.img [Att.src user.profile_photo] []],
           H.div[Att.class "name"][H.text display_name],
         ],
-        H.a [Att.class "logout_link", Att.href "/accounts/logout/"] [H.text "Log out"],
+        H.div[Att.class "photo"][H.img [Att.src user.profile_photo] []],
       ]
   in case model of
     LoggedIn {user} -> logged_in_navbar user
