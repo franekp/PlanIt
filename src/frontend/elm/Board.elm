@@ -23,6 +23,18 @@ onContentChange make_msg_from_string =
   let target_inner_html = ("target" := ("innerHTML" := Decode.string)) in
   Ev.on "input" (Decode.map make_msg_from_string target_inner_html)
 
+putRequest : String -> Http.Body -> Decode.Decoder a -> Http.Request a
+putRequest url body decoder = Http.request {
+    method = "PUT",
+    headers = [], -- [(Http.header "Content-Type" "application/json")],
+    url = url,
+    body = body,
+    expect = Http.expectJson decoder,
+    timeout = Nothing,
+    withCredentials = False,
+  }
+
+
 test_data = [
     "a" => [1 => "item1", 2 => "item2", 3 => "item3"],
     "b" => [4 => "item4", 5 => (
@@ -87,8 +99,9 @@ type Msg =
   | EditInProgress String
   | EditEnd
   | NoOp
+  | Error String
   | PushCardToServer Card CardListId
-  --| PushCardToServerDone CardId CardListId
+  | PushCardToServerDone Card CardListId
   --| PushCardListToServer CardListId
 
 card_to_string : (Card, CardListId) -> String
@@ -155,7 +168,10 @@ update msg ({board, dragging, hovering, editing, drag} as model) =
 
         Nothing -> model ! []  -- should not be possible
 
-    DragEnd -> stop_dragging model ! []
+    DragEnd -> stop_dragging model ! (Maybe.map2 (\dragging -> \hovering -> [
+        Task.perform identity (Task.succeed <|
+          PushCardToServer dragging.card hovering.card_list_id)
+      ]) dragging hovering |> Maybe.withDefault [])
 
     MouseEnterCardList card_list_id -> {
         model |
@@ -241,9 +257,16 @@ update msg ({board, dragging, hovering, editing, drag} as model) =
           )
         in {
           model | board = new_board, editing = Nothing,
-        } ! []
+        } ! [
+          Task.perform identity (Task.succeed <|
+            PushCardToServer card card_list_id)
+        ]
 
     NoOp -> model ! []
+
+    -- these errors should be intercepted and handled one level up
+    --  - in the module that uses this module
+    Error _ -> model ! []
 
     PushCardToServer pushed_card pushed_card_list_id ->
       let new_board = model.board |> List.map (\card_list ->
@@ -258,7 +281,34 @@ update msg ({board, dragging, hovering, editing, drag} as model) =
             )
           }
         )
-      in {model | board = new_board} ! []  -- TODO
+      in {model | board = new_board} ! [
+        (putRequest (
+          "/api/day/" ++ pushed_card_list_id ++ "/cards/"
+          ++ toString pushed_card.ident ++ ".json"
+        ) (Http.jsonBody <| Encode.object [
+          "text" => Encode.string pushed_card.text
+        ]) (Decode.succeed ()))
+        |> Http.send (\result ->
+          case result of
+            Ok () -> PushCardToServerDone pushed_card pushed_card_list_id
+            Err error -> Error <| toString error
+        )
+      ]
+
+    PushCardToServerDone pushed_card pushed_card_list_id ->
+      let new_board = model.board |> List.map (\card_list ->
+          if card_list.ident /= pushed_card_list_id then
+            card_list
+          else {
+            card_list | cards = card_list.cards |> List.map (\card ->
+              if card.ident == pushed_card.ident then
+                {card | loading = False}
+              else
+                card
+            )
+          }
+        )
+      in {model | board = new_board} ! []
 
 
 stop_dragging : Model -> Model
@@ -291,10 +341,7 @@ stop_dragging ({board, dragging, hovering, drag} as model) =
 
                       h::t ->
                         if h.ident == hovering_card_id then
-                          insert_helper t (
-                            let dragging_card = dragging.card in
-                            h::{dragging_card | loading = True}::output
-                          )
+                          insert_helper t (h::dragging.card::output)
                         else
                           insert_helper t (h::output)
                   in let insert_into input =
@@ -342,7 +389,7 @@ view ({board, dragging, hovering, editing, drag} as model) =
       inline = [
         "cursor" => "default",
         "z-index" => "1",
-      ],-- ++ if card.loading then ["background-color" => "yellow"] else [],
+      ] ++ if card.loading then ["background-color" => "yellow"] else [],
       class_list = ["card"],
       is_hovering = False,
       is_editing = False,

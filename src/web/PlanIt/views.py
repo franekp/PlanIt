@@ -5,6 +5,8 @@ from rest_framework.reverse import reverse
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
+from rest_framework.authentication import SessionAuthentication
+from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import get_object_or_404
 from allauth.socialaccount.models import SocialAccount
 import hashlib
@@ -14,7 +16,13 @@ from PlanIt.serializers import CardSerializer
 from PlanIt.models import Card
 
 
+class CsrfExemptSessionAuthentication(SessionAuthentication):
+    def enforce_csrf(self, request):
+        return
+
+
 class CardsByDayViewSet(viewsets.ModelViewSet):
+    authentication_classes = (CsrfExemptSessionAuthentication,)
     serializer_class = CardSerializer
     pagination_class = None
 
@@ -36,6 +44,7 @@ class CardsByDayViewSet(viewsets.ModelViewSet):
 
 
 class CardsInParkingLotViewSet(viewsets.ModelViewSet):
+    authentication_classes = (CsrfExemptSessionAuthentication,)
     serializer_class = CardSerializer
     pagination_class = None
 
@@ -52,7 +61,7 @@ class CardsInParkingLotViewSet(viewsets.ModelViewSet):
     def perform_update(self, serializer):
         serializer.save(user=self.request.user, day=None)
 
-
+@csrf_exempt
 @api_view(['GET'])
 def api_root(request, format=None):
     return Response({
@@ -63,6 +72,7 @@ def api_root(request, format=None):
             'cards-in-parking-lot-list', request=request, format=format)
     })
 
+@csrf_exempt
 @api_view(['GET'])
 def current_user(request, format=None):
     def get_profile_photo():
@@ -81,6 +91,7 @@ def current_user(request, format=None):
     else:
         return Response({"authenticated": False})
 
+@csrf_exempt
 @api_view(['GET'])
 def current_week(request, format=None):
     dates = [datetime.now() + timedelta(days=days) for days in range(7)]
