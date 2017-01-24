@@ -162,10 +162,10 @@ view_navbar model =
   let
     not_logged_in_navbar = H.div [Att.class "navbar"] [
         H.span [Att.class "brand"] [H.text "PlanIt"],
-        H.a [Att.class "login_link", Att.href "/accounts/login/"] [H.text "Log in"],
         H.a [
           Att.class "register_link", Att.href "/accounts/signup/"
         ] [H.text "Register"],
+        H.a [Att.class "login_link", Att.href "/accounts/login/"] [H.text "Log in"],
       ]
     logged_in_navbar user =
       let display_name = if user.full_name /= ""
