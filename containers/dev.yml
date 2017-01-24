@@ -44,7 +44,7 @@ services:
       - ../src/web:/web
     command: |
       bash -c '\
-      ./manage.py migrate --noinput --settings=web.settings.dev && ./manage.py shell --settings=web.settings.dev < create_admin && ./manage.py shell --settings=web.settings.dev < create_app && ./manage.py runserver 0.0.0.0:80 --settings=web.settings.dev\
+      ./manage.py migrate --noinput --settings=web.settings.dev && ./manage.py shell --settings=web.settings.dev < create_admin && ./manage.py runserver 0.0.0.0:80 --settings=web.settings.dev\
       '
   worker:
     build:
