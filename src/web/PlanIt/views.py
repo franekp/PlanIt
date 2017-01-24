@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 import time
 
 from rest_framework.reverse import reverse
@@ -64,13 +64,19 @@ def api_root(request, format=None):
     })
 
 @api_view(['GET'])
-def photo(request, format=None):
+def profile_photo(request, format=None):
     fb_uid = SocialAccount.objects.filter(user_id=request.user.id, provider='facebook')
- 
+
     if len(fb_uid):
 	    return Response({
 		    'photo': "http://graph.facebook.com/{}/picture?width=40&height=40".format(fb_uid[0].uid)
 		})
     return Response ({
-        'photo': "http://www.gravatar.com/avatar/{}?s=40".format(hashlib.md5(request.user.email).hexdigest())
+        'photo': "http://www.gravatar.com/avatar/{}?s=40".format(hashlib.md5(request.user.email.encode()).hexdigest())
     })
+
+@api_view(['GET'])
+def current_week(request, format=None):
+    dates = [datetime.now() + timedelta(days=days) for days in range(7)]
+    dates = [d.strftime('%Y-%m-%d') for d in dates]
+    return Response({"days": dates})

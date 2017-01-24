@@ -30,5 +30,4 @@ urlpatterns = [
     )),
     url(r'^accounts/', include('allauth.urls')),
     url(r'^manage/', TemplateView.as_view(template_name="manage.html")),
-    url(r'^photo/', PlanIt.views.photo, name='photo'),
 ]

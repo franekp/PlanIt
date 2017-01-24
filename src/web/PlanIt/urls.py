@@ -16,4 +16,6 @@ router.register(
 urlpatterns = format_suffix_patterns([
     url(r'^', include(router.urls)),
     url(r'^$', views.api_root),
+    url(r'^current_week/', views.current_week, name='current_week'),
+    url(r'^profile_photo/', views.profile_photo, name='profile_photo'),
 ])
