@@ -26,7 +26,7 @@ onContentChange make_msg_from_string =
 putRequest : String -> Http.Body -> Decode.Decoder a -> Http.Request a
 putRequest url body decoder = Http.request {
     method = "PUT",
-    headers = [], -- [(Http.header "Content-Type" "application/json")],
+    headers = [],
     url = url,
     body = body,
     expect = Http.expectJson decoder,
@@ -225,7 +225,7 @@ update msg ({board, dragging, hovering, editing, drag} as model) =
         model | google_chrome_mouse_up_hack = {card = True, card_list = True}
       } ! []
 
-    EditStart card card_list_id -> Debug.log "EditStart" {
+    EditStart card card_list_id -> {
         model | editing = Just {card = card, card_list_id = card_list_id}
       } ! [
         Dom.focus "editing_card_textbox"
@@ -360,7 +360,7 @@ view ({board, dragging, hovering, editing, drag} as model) =
   let
     dragging_card_css delta =
       let
-        (x, y) = Debug.log "delta" delta
+        (x, y) = delta
         need_to_offset_up = case hovering of
           Nothing -> False
           Just hovering -> case hovering.card_id of
@@ -368,13 +368,13 @@ view ({board, dragging, hovering, editing, drag} as model) =
             Just _ -> case dragging of
               Nothing -> False  -- should not be possible
               Just dragging ->
-                Debug.log "dragging" dragging.card_list_id == Debug.log "hovering" hovering.card_list_id && y < 0
+                dragging.card_list_id == hovering.card_list_id && y < 0
       in {
         inline = [
           "transform" => (""
             ++ "translateX(" ++ toString (round x) ++ "px) "
             ++ "translateY(" ++ toString (round y) ++ "px) "
-            ++ (if Debug.log "offset_up" need_to_offset_up then "translateY(-100%) " else "")
+            ++ (if need_to_offset_up then "translateY(-100%) " else "")
             ++ "scale(0.85, 0.85) "
             ++ "rotate(5deg)"
           ),
