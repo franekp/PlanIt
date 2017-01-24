@@ -18,4 +18,8 @@ urlpatterns = format_suffix_patterns([
     url(r'^$', views.api_root),
     url(r'^current_week/', views.current_week, name='current_week'),
     url(r'^profile_photo/', views.profile_photo, name='profile_photo'),
+    url(
+        r'^is_user_logged_in/', views.is_user_logged_in,
+        name='is_user_logged_in',
+    ),
 ])

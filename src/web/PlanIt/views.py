@@ -80,3 +80,10 @@ def current_week(request, format=None):
     dates = [datetime.now() + timedelta(days=days) for days in range(7)]
     dates = [d.strftime('%Y-%m-%d') for d in dates]
     return Response({"days": dates})
+
+@api_view(['GET'])
+def is_user_logged_in(request, format=None):
+    if request.user.is_authenticated:
+        return Response({"authenticated": True})
+    else
+        return Response({"authenticated": False})
