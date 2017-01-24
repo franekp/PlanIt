@@ -176,8 +176,8 @@ view_navbar model =
         H.a [
           Att.class "profile_link", Att.href "/manage/",
         ] [
-          H.div[][H.img [Att.src user.profile_photo] []],
-          H.div[][H.text display_name],
+          H.div[Att.class "photo"][H.img [Att.src user.profile_photo] []],
+          H.div[Att.class "name"][H.text display_name],
         ],
         H.a [Att.class "logout_link", Att.href "/accounts/logout/"] [H.text "Log out"],
       ]
