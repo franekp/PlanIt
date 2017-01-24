@@ -162,9 +162,9 @@ view_navbar model =
   let
     not_logged_in_navbar = H.div [Att.class "navbar"] [
         H.span [Att.class "brand"] [H.text "PlanIt"],
-        H.a [Att.class "login_link", Att.href "/api-auth/login"] [H.text "Log in"],
+        H.a [Att.class "login_link", Att.href "/accounts/login/"] [H.text "Log in"],
         H.a [
-          Att.class "register_link", Att.href "/api-auth/register",
+          Att.class "register_link", Att.href "/accounts/signup/"
         ] [H.text "Register"],
       ]
     logged_in_navbar user =
@@ -174,9 +174,9 @@ view_navbar model =
       in H.div [Att.class "navbar"] [
         H.span [Att.class "brand"] [H.text "PlanIt"],
         H.a [
-          Att.class "profile_link", Att.href "/accounts/profile",
+          Att.class "profile_link", Att.href "/manage/",
         ] [H.img [Att.src user.profile_photo] [], H.text display_name],
-        H.a [Att.class "logout_link", Att.href "/api-auth/logout"] [H.text "Log out"],
+        H.a [Att.class "logout_link", Att.href "/accounts/logout/"] [H.text "Log out"],
       ]
   in case model of
     LoggedIn {user} -> logged_in_navbar user
