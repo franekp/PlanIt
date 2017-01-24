@@ -175,7 +175,7 @@ view_navbar model =
         H.span [Att.class "brand"] [H.text "PlanIt"],
         H.a [
           Att.class "profile_link", Att.href "/accounts/profile",
-        ] [H.img [Att.src user.profile_photo] [], H.text user.full_name],
+        ] [H.img [Att.src user.profile_photo] [], H.text display_name],
         H.a [Att.class "logout_link", Att.href "/api-auth/logout"] [H.text "Log out"],
       ]
   in case model of
