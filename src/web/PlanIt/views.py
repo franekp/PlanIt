@@ -64,26 +64,25 @@ def api_root(request, format=None):
     })
 
 @api_view(['GET'])
-def profile_photo(request, format=None):
-    fb_uid = SocialAccount.objects.filter(user_id=request.user.id, provider='facebook')
+def current_user(request, format=None):
+    def get_profile_photo():
+        fb_uid = SocialAccount.objects.filter(user_id=request.user.id, provider='facebook')
+        if len(fb_uid):
+            return 'photo': "http://graph.facebook.com/{}/picture?width=40&height=40".format(fb_uid[0].uid)
+        return 'photo': "http://www.gravatar.com/avatar/{}?s=40".format(hashlib.md5(request.user.email.encode()).hexdigest())
 
-    if len(fb_uid):
-	    return Response({
-		    'photo': "http://graph.facebook.com/{}/picture?width=40&height=40".format(fb_uid[0].uid)
-		})
-    return Response ({
-        'photo': "http://www.gravatar.com/avatar/{}?s=40".format(hashlib.md5(request.user.email.encode()).hexdigest())
-    })
+    if request.user.is_authenticated:
+        return Response({
+            "authenticated": True,
+            "profile_photo": get_profile_photo(),
+            "username": request.user.get_username(),
+            "full_name": request.user.get_full_name(),
+        })
+    else
+        return Response({"authenticated": False})
 
 @api_view(['GET'])
 def current_week(request, format=None):
     dates = [datetime.now() + timedelta(days=days) for days in range(7)]
     dates = [d.strftime('%Y-%m-%d') for d in dates]
     return Response({"days": dates})
-
-@api_view(['GET'])
-def is_user_logged_in(request, format=None):
-    if request.user.is_authenticated:
-        return Response({"authenticated": True})
-    else
-        return Response({"authenticated": False})
