@@ -1,4 +1,5 @@
 FROM python:3.4
+RUN apt-get update && apt-get install sqlite3
 RUN pip install pip-tools
 
 RUN mkdir /web
