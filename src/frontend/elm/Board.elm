@@ -24,12 +24,12 @@ onContentChange make_msg_from_string =
   Ev.on "input" (Decode.map make_msg_from_string target_inner_html)
 
 test_data = [
-    [1 => "item1", 2 => "item2", 3 => "item3"],
-    [4 => "item4", 5 => (
+    "a" => [1 => "item1", 2 => "item2", 3 => "item3"],
+    "b" => [4 => "item4", 5 => (
       "item5 asdjhgfkldsjah ashfgulhsadlfk slkdjahf asdfsdf asdf sad fsadf"
       ++ "asdfasdf sadf sdfsdaas df dsfsadfdsa fsdafsad fsadf sdafsd fsdfs"
     )],
-    [7 => "item7", 8 => (
+    "c" => [7 => "item7", 8 => (
       "item5 asdjhgfkldsjah ashfgulhsadlfk slkdjahf asdfsdf asdf sad fsadf"
       ++ "asdfasdf sadf sdfsdaas df dsfsadfdsa fsdafsad fsadf sdafsd fsdfs"
     )],
@@ -60,7 +60,7 @@ type alias Model = {
 }
 
 type alias CardId = Int
-type alias CardListId = Int
+type alias CardListId = String
 
 type alias CardList = {
   ident : CardListId,
@@ -99,13 +99,13 @@ card_from_string str =
       (Maybe.map2 (\card_list_id -> \ident ->
         ({ident = ident, text = text}, card_list_id)
       ))
-      (card_list_id |> String.toInt |> Result.toMaybe)
+      (Just card_list_id)
       (ident |> String.toInt |> Result.toMaybe)
     _ -> Nothing
 
-init : List (List (Int, String)) -> (Model, Cmd Msg)
+init : List (String, List (Int, String)) -> (Model, Cmd Msg)
 init input = ({
-    board = List.indexedMap (\i -> \li -> CardList i <|
+    board = List.map (\(i, li) -> CardList i <|
         List.map (\(id, text) -> {ident = id, text = text}) li
       ) input,
     dragging = Nothing,
