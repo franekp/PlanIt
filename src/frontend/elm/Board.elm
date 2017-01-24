@@ -104,6 +104,8 @@ type Msg =
   | PushCardToServer Card CardListId
   | PushCardToServerDone Card CardListId
   --| PushCardListToServer CardListId
+  | AddCard CardListId
+  | AddCardDone Card CardListId
 
 card_to_string : (Card, CardListId) -> String
 card_to_string ({ident, text}, card_list_id) =
@@ -311,6 +313,39 @@ update msg ({board, dragging, hovering, editing, drag} as model) =
         )
       in {model | board = new_board} ! []
 
+    AddCard card_list_id ->
+      let
+        card_list_len = board
+          |> List.filter (.ident >> ((==) card_list_id)) |> List.head
+          |> Maybe.map (.cards >> List.length) |> Maybe.withDefault 0
+        decoder = Decode.map2 (\ident -> \text ->
+            {ident = ident, text = text, loading = False}
+          ) ("id" := Decode.int) ("text" := Decode.string)
+      in model ! [
+        (Http.post (
+          "/api/day/" ++ card_list_id ++ "/cards.json"
+        ) (Http.jsonBody <| Encode.object [
+          "text" => Encode.string " &nbsp ",
+          "position_in_list" => Encode.int card_list_len,
+        ]) decoder)
+        |> Http.send (\result ->
+          case result of
+            Ok card -> AddCardDone card card_list_id
+            Err error -> Error <| toString error
+        )
+      ]
+
+    AddCardDone card card_list_id ->
+      let new_board = board
+        |> List.map (\card_list ->
+          if card_list.ident /= card_list_id then
+            card_list
+          else
+            {card_list | cards = card_list.cards ++ [card]}
+        )
+      in {model | board = new_board} ! [
+        Task.perform identity <| Task.succeed (EditStart card card_list_id)
+      ]
 
 stop_dragging : Model -> Model
 stop_dragging ({board, dragging, hovering, drag} as model) =
@@ -502,7 +537,12 @@ view ({board, dragging, hovering, editing, drag} as model) =
     ]
   ] ++ (
     List.concat <| List.map (view_card card_list.ident) card_list.cards
-  )
+  ) ++ [
+    H.button [
+      Ev.onClick <| AddCard card_list.ident,
+      Att.class "add_card",
+    ] <| [H.text "Add card"]
+  ]
   in H.div [
     Att.class "board",
     Att.style <| case dragging of
