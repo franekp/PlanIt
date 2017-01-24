@@ -528,11 +528,11 @@ view ({board, dragging, hovering, editing, drag} as model) =
     Ev.onMouseLeave <| MouseLeaveCardList card_list.ident,
   ] <| [
     H.header [] [
-      H.text (
+      H.text ((
         Date.fromString card_list.ident |> Result.toMaybe
         |> Maybe.map Date.dayOfWeek |> Maybe.map toString
         |> Maybe.withDefault ""
-      ),
+      ) ++ " "),
       H.span [] [H.text card_list.ident],
     ]
   ] ++ (
