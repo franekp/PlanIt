@@ -10,6 +10,7 @@ import Http
 import Json.Decode as Decode
 import Json.Encode as Encode
 import Task
+import Date
 
 import Draggable
 import Draggable.Events exposing (onDragStart, onDragBy, onDragEnd)
@@ -490,7 +491,18 @@ view ({board, dragging, hovering, editing, drag} as model) =
     Att.class "card_list",
     Ev.onMouseEnter <| MouseEnterCardList card_list.ident,
     Ev.onMouseLeave <| MouseLeaveCardList card_list.ident,
-  ] <| List.concat <| List.map (view_card card_list.ident) card_list.cards
+  ] <| [
+    H.header [] [
+      H.text (
+        Date.fromString card_list.ident |> Result.toMaybe
+        |> Maybe.map Date.dayOfWeek |> Maybe.map toString
+        |> Maybe.withDefault ""
+      ),
+      H.span [] [H.text card_list.ident],
+    ]
+  ] ++ (
+    List.concat <| List.map (view_card card_list.ident) card_list.cards
+  )
   in H.div [
     Att.class "board",
     Att.style <| case dragging of
