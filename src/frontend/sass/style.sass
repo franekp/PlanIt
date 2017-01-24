@@ -5,11 +5,9 @@ h1
   display: inline-block
 
 .card
-  border-width: 0.5px
-  border-style: solid
-  border-color: gray
   border-top-color: gray
-  border-top-width: 2px
+  border-top-style: solid
+  border-top-width: 1px
   border-radius: 5px
   margin: 5px
   padding: 8px
@@ -21,6 +19,8 @@ h1
     // nothing here, but just to document that this class exists
   &.editing
     background-color: white
+    box-shadow: inset 0px 0px 2px 0px gray, inset 0px 0px 2px 0px gray, inset 1px 1px 3px 0px gray
+    outline: none
 
 .card_list
   border-width: 3
@@ -29,10 +29,10 @@ h1
   border-radius: 5px
   background-color: #CAD3EC
   display: inline-block
-  margin: 5px
+  margin: 4px
   vertical-align: top
   min-width: 150px
-  width: 12%
+  width: 13%
   header
     margin: 3px
     padding: 3px
@@ -65,7 +65,9 @@ h1
       cursor: pointer
 
 .board
-  padding: 20px
+  padding: 8px
+  margin-left: auto
+  margin-right: auto
 
 .navbar
   padding: 10px
