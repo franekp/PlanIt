@@ -203,8 +203,11 @@ view_main model = case model of
     ]
 
   Loading _ -> H.div [Att.class "main"] [
-      H.h3 [Att.class "loading"] [
-        H.text "Loading..."
+      H.div [Att.class "loading"] [
+        H.h3 [] [
+          H.text "Loading...",
+        ],
+        H.div [Att.class "loading_large"] [],
       ]
     ]
 
@@ -213,8 +216,11 @@ view_logged_in {board, error} = case board of
   BoardDataLoading li ->
     let progress = (toFloat <| List.length li) / 7.0 * 100.0 |> toString in
     H.div [Att.class "main"] [
-        H.h3 [Att.class "loading"] [
-          H.text <| "Loading... (" ++ progress ++ ")"
+        H.div [Att.class "loading"] [
+          H.h3 [] [
+            H.text <| "Loading... (" ++ progress ++ ")",
+          ],
+          H.div [Att.class "loading_large"] [],
         ]
       ]
 

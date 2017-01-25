@@ -425,8 +425,8 @@ view ({board, dragging, hovering, editing, drag} as model) =
       inline = [
         "cursor" => "default",
         "z-index" => "1",
-      ] ++ if card.loading then ["background-color" => "yellow"] else [],
-      class_list = ["card"],
+      ],
+      class_list = ["card"] ++ if card.loading then ["loading"] else [],
       is_hovering = False,
       is_editing = False,
     }
@@ -479,6 +479,11 @@ view ({board, dragging, hovering, editing, drag} as model) =
           editing_card_css
         else
           get_card_css_inner card
+  in let view_card_wrap_loading card html =
+    H.div [] (
+      (if card.loading then [H.div [Att.class "loading_small"][]] else[])
+      ++ [html]
+    )
   in let view_card card_list_id card =
     let css = get_card_css card in (
       if css.is_hovering then
@@ -497,7 +502,7 @@ view ({board, dragging, hovering, editing, drag} as model) =
       else []
     ) ++ (
       if not css.is_editing then
-        [Html.Lazy.lazy (\txt -> H.div [
+        [view_card_wrap_loading card <| Html.Lazy.lazy (\txt -> H.div [
           Att.style css.inline,
           Att.classList <| List.map (\c -> (c, True)) css.class_list,
           Att.contenteditable False,

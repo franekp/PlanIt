@@ -4,6 +4,52 @@ h1
 .day_container
   display: inline-block
 
+.main
+  margin: auto
+  text-align: center
+
+.elm_root
+  margin: auto
+  text-align: center
+
+.elm_root > div
+  display: inline-block
+
+.loading
+  margin: auto
+  text-align: center
+  > div
+    display: inline-block
+
+.loading_small
+  border-top: 5px solid #3498db
+  border-left: 5px solid lighten(#3498db, 10%)
+  border-bottom: 5px solid lighten(#3498db, 20%)
+  border-right: 5px solid lighten(#3498db, 30%)
+  border-radius: 50%
+  width: 1em
+  height: 1em
+  float: left
+  margin: 5px
+  animation: spin 1s linear infinite
+  box-shadow: inset 0px 0px 4px 1px #f3f3f3
+
+.loading_large
+  border-top: 10px solid #3498db
+  border-left: 10px solid lighten(#3498db, 10%)
+  border-bottom: 10px solid lighten(#3498db, 20%)
+  border-right: 10px solid lighten(#3498db, 30%)
+  border-radius: 50%
+  width: 120px
+  height: 120px
+  animation: spin 2s linear infinite
+
+@keyframes spin
+  0%
+    transform: rotate(0deg)
+  100%
+    transform: rotate(360deg)
+
 .card
   border-top-color: gray
   border-top-style: solid
@@ -202,7 +248,7 @@ h1
   color: #AC0606
 
 .login_body
-  background-color: 
+  background-color:
   padding: 0
   margin: 0
 
@@ -275,8 +321,8 @@ ul.errorlist li
   overflow: hidden
   color: white
   text-align: center
-  padding: 11px 
-  font-weight: bold  
+  padding: 11px
+  font-weight: bold
   font-size: 17px
   &.visited
     color: white
@@ -300,30 +346,9 @@ ul.errorlist li
   margin-right: auto
   margin-top: 20px
   text-align: center
-  
+
 .logout
-  margin: 15px 
- 
+  margin: 15px
+
 .form
-  margin: 15px  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
+  margin: 15px

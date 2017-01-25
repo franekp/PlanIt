@@ -39,6 +39,8 @@ class CardsByDayViewSet(viewsets.ModelViewSet):
         serializer.save(user=self.request.user, day=day)
 
     def perform_update(self, serializer):
+        import time
+        time.sleep(1)
         day = datetime.strptime(self.kwargs['day'], '%Y-%m-%d').date()
         serializer.save(user=self.request.user, day=day)
 
