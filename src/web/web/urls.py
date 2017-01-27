@@ -15,7 +15,7 @@ Including another URLconf
 """
 from django.conf.urls import url, include
 from django.contrib.admin import site as admin_site
-from django.views.generic import TemplateView
+from django.views.generic import TemplateView, RedirectView
 import allauth
 
 import PlanIt.urls
@@ -23,6 +23,7 @@ import PlanIt.views
 
 
 urlpatterns = [
+    url(r'^/?$', RedirectView.as_view(url='/app/')),
     url(r'^admin/', admin_site.urls),
     url(r'^api/', include('PlanIt.urls')),
     url(r'^api-auth/', include(
