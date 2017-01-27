@@ -21,7 +21,11 @@ services:
       dockerfile: containers/web/Dockerfile
     command: |
       bash -c '\
-      ./manage.py migrate --noinput --settings=web.settings.demo && ./manage.py shell --settings=web.settings.demo < create_admin && ./manage.py runserver 0.0.0.0:80 --settings=web.settings.demo --insecure \
+      sleep 4 \
+      && ./manage.py migrate --noinput --settings=web.settings.demo \
+      && ./manage.py shell --settings=web.settings.demo < create_admin \
+      && ./manage.py dbshell --settings=web.settings.demo < create_app \
+      && ./manage.py runserver --insecure 0.0.0.0:80 --settings=web.settings.demo \
       '
   web2:
     build:
@@ -29,7 +33,8 @@ services:
       dockerfile: containers/web/Dockerfile
     command: |
       bash -c '\
-      ./manage.py runserver 0.0.0.0:80 --settings=web.settings.demo --insecure \
+      sleep 4 \
+      && ./manage.py runserver --insecure 0.0.0.0:80 --settings=web.settings.demo \
       '
   web3:
     build:
@@ -37,8 +42,16 @@ services:
       dockerfile: containers/web/Dockerfile
     command: |
       bash -c '\
-      ./manage.py runserver 0.0.0.0:80 --settings=web.settings.demo --insecure \
+      sleep 4 \
+      && ./manage.py runserver --insecure 0.0.0.0:80 --settings=web.settings.demo \
       '
+  postgres:
+    build:
+      context: ..
+      dockerfile: containers/postgres/Dockerfile
+    environment:
+      POSTGRES_USER: PlanIt
+      POSTGRES_PASSWORD: PlanIt
   worker:
     build:
       context: ..

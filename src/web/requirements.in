@@ -3,3 +3,4 @@ djangorestframework
 pygments
 python-memcached
 django-allauth
+psycopg2

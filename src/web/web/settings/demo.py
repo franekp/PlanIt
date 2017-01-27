@@ -13,3 +13,14 @@ CACHES = {
         ]
     }
 }
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'PlanIt',
+        'USER': 'PlanIt',
+        'PASSWORD': 'PlanIt',
+        'HOST': 'postgres',
+        'PORT': '5432',
+    }
+}
