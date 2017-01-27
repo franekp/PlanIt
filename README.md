@@ -1,6 +1,6 @@
 # PlanIt
 
-### Getting started:
+### Prerequisites
  * install latest docker from official package for debian:
    https://docs.docker.com/engine/installation/linux/debian/
  * install docker-compose globally on root user:

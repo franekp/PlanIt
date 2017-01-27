@@ -6,7 +6,7 @@ services:
       dockerfile: containers/varnish/Dockerfile
     command: |
       bash -c '\
-      varnishd -f /etc/varnish/production.vcl -s malloc,100M -a 0.0.0.0:80 \
+      varnishd -f /etc/varnish/demo.vcl -s malloc,100M -a 0.0.0.0:80 \
       && varnishlog \
       '
     ports:
