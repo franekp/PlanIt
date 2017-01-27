@@ -22,8 +22,6 @@ if [ ! -f last_docker_build_timestamp ] \
   || find containers -newer last_docker_build_timestamp | egrep '.*' \
   || find 'src/web/requirements.in' -newer last_docker_build_timestamp | egrep '.*' \
   || find src/web/requirements.txt -newer last_docker_build_timestamp | egrep '.*' \
-  || find 'src/worker/requirements.in' -newer last_docker_build_timestamp | egrep '.*' \
-  || find src/worker/requirements.txt -newer last_docker_build_timestamp | egrep '.*' \
 ; \
 then
   # install system packages and python packages
@@ -31,7 +29,6 @@ then
   touch last_docker_build_timestamp
   # copy updated (by pip-compile) requirements.txt back to host
   copy_to_host_if_changed web /web/requirements.txt src/web/requirements.txt
-  copy_to_host_if_changed worker /worker/requirements.txt src/worker/requirements.txt
 else
   echo 'None such files.'
   echo 'Skipping docker build.'

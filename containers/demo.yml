@@ -52,14 +52,6 @@ services:
     environment:
       POSTGRES_USER: PlanIt
       POSTGRES_PASSWORD: PlanIt
-  worker:
-    build:
-      context: ..
-      dockerfile: containers/worker/Dockerfile
-    command: |
-      bash -c '\
-      ./manage.py migrate && ./manage.py runserver 0.0.0.0:80 \
-      '
   memcached1:
     build:
       context: ..

@@ -25,7 +25,7 @@ backend nginx {
 }
 
 acl purge_ip {
-    "web1"; "web2"; "web3"; "worker";
+    "web1"; "web2"; "web3";
 }
 
 sub vcl_init{

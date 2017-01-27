@@ -46,16 +46,6 @@ services:
       bash -c '\
       ./manage.py migrate --noinput --settings=web.settings.dev && ./manage.py shell --settings=web.settings.dev < create_admin && ./manage.py dbshell --settings=web.settings.dev < create_app && ./manage.py runserver 0.0.0.0:80 --settings=web.settings.dev\
       '
-  worker:
-    build:
-      context: ..
-      dockerfile: containers/worker/Dockerfile
-    volumes:
-      - ../src/worker:/worker
-    command: |
-      bash -c '\
-      ./manage.py migrate --noinput && ./manage.py runserver 0.0.0.0:80 \
-      '
 volumes:
   yarn-cache:
     driver: local
