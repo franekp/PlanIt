@@ -7,7 +7,6 @@ source util.sh
 
 mkdir -p build
 mkdir -p build/css
-mkdir -p build/html
 mkdir -p build/js
 
 export COMPOSE_PROJECT_NAME="planitdev"
